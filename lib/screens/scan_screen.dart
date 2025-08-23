@@ -4,6 +4,7 @@ import '../models/student.dart';
 import '../services/student_service.dart';
 import '../config/platform_config.dart';
 import 'result_screen.dart';
+import 'student_list_screen.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -121,58 +122,93 @@ class _ScanScreenState extends State<ScanScreen> {
     PlatformConfig.showPlatformWarning();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scan KTM'),
-        backgroundColor: Colors.blue[600],
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
       body: Column(
         children: [
-          // Header dengan instruksi
+          // Header clean modern
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.blue[600],
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFF6B35),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
               ),
             ),
-            child: Column(
-              children: [
-                Icon(Icons.qr_code_scanner, size: 60, color: Colors.white),
-                const SizedBox(height: 15),
-                const Text(
-                  'Arahkan kamera ke barcode KTM',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.qr_code_scanner_rounded,
+                      size: 48,
+                      color: Colors.white,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Pastikan barcode terlihat jelas dalam frame',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Scanner KTM UAD',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Text(
+                      'Arahkan kamera ke barcode KTM untuk verifikasi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
-          // Scanner area atau pesan platform tidak didukung
+          // Scanner area clean design
           Expanded(
             child: Container(
               margin: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.blue[300]!, width: 3),
+                border: Border.all(color: const Color(0xFFFF6B35), width: 2),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(17),
+                borderRadius: BorderRadius.circular(18),
                 child: PlatformConfig.enableScanner
                     ? MobileScanner(
                         controller: cameraController,
@@ -183,23 +219,25 @@ class _ScanScreenState extends State<ScanScreen> {
             ),
           ),
 
-          // Tombol manual input
+          // Tombol manual input clean
           Container(
             padding: const EdgeInsets.all(20),
             child: SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 56,
               child: ElevatedButton.icon(
                 onPressed: () {
                   _showManualInputDialog();
                 },
-                icon: const Icon(Icons.keyboard),
+                icon: const Icon(Icons.keyboard, size: 20),
                 label: const Text('Input Manual NIM/Plat'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange[600],
+                  backgroundColor: const Color(0xFFFF6B35),
                   foregroundColor: Colors.white,
+                  elevation: 2,
+                  shadowColor: Colors.black26,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
@@ -326,47 +364,72 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  // Widget untuk platform yang tidak didukung
+  // Widget untuk platform yang tidak didukung clean design
   Widget _buildUnsupportedPlatformWidget() {
     return Container(
-      color: Colors.grey[100],
+      color: Colors.grey[50],
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 80, color: Colors.orange[600]),
-            const SizedBox(height: 20),
-            Text(
-              'Scanner Tidak Tersedia',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B35).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFFFF6B35).withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.camera_alt_outlined,
+                  size: 64,
+                  color: Color(0xFFFF6B35),
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
+              const SizedBox(height: 24),
+              Text(
+                'Scanner Tidak Tersedia',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
                 PlatformConfig.unsupportedPlatformMessage,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                  height: 1.4,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                // Tampilkan dialog dengan data demo
-                _showDemoDataDialog();
-              },
-              icon: const Icon(Icons.info),
-              label: const Text('Lihat Data Demo'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[600],
-                foregroundColor: Colors.white,
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: () {
+                  _showDemoDataDialog();
+                },
+                icon: const Icon(Icons.info_outline, size: 20),
+                label: const Text('Lihat Data Demo'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF6B35),
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shadowColor: Colors.black26,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

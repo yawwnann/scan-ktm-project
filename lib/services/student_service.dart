@@ -1,9 +1,8 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../models/student.dart';
 import '../config/app_config.dart';
 import '../data/demo_data.dart';
 import '../utils/logger.dart';
+import '../services/firebase_service.dart';
 
 class StudentService {
   // Fungsi untuk mendapatkan data mahasiswa berdasarkan barcode
@@ -13,27 +12,8 @@ class StudentService {
       return DemoData.findStudentByBarcode(barcode);
     }
 
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/students/$barcode'),
-        headers: {
-          'Content-Type': 'application/json',
-          // Tambahkan header autentikasi jika diperlukan
-          // 'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        return Student.fromJson(data);
-      } else {
-        Logger.error('HTTP Error: ${response.statusCode} - ${response.body}');
-        return null;
-      }
-    } catch (e) {
-      Logger.error('Exception in API call', e);
-      return null;
-    }
+    // Gunakan Firebase untuk production
+    return await FirebaseService.getStudentByNIM(barcode);
   }
 
   // Fungsi untuk mendapatkan data mahasiswa berdasarkan NIM
@@ -43,23 +23,8 @@ class StudentService {
       return DemoData.findStudentByNIM(nim);
     }
 
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/students/nim/$nim'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        return Student.fromJson(data);
-      } else {
-        Logger.error('HTTP Error: ${response.statusCode} - ${response.body}');
-        return null;
-      }
-    } catch (e) {
-      Logger.error('Exception in API call', e);
-      return null;
-    }
+    // Gunakan Firebase untuk production
+    return await FirebaseService.getStudentByNIM(nim);
   }
 
   // Fungsi untuk mendapatkan data mahasiswa berdasarkan nomor plat
@@ -71,23 +36,8 @@ class StudentService {
       return DemoData.findStudentByVehicleNumber(vehicleNumber);
     }
 
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/students/vehicle/$vehicleNumber'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        return Student.fromJson(data);
-      } else {
-        Logger.error('HTTP Error: ${response.statusCode} - ${response.body}');
-        return null;
-      }
-    } catch (e) {
-      Logger.error('Exception in API call', e);
-      return null;
-    }
+    // Gunakan Firebase untuk production
+    return await FirebaseService.getStudentByVehicleNumber(vehicleNumber);
   }
 
   // Fungsi untuk menyimpan riwayat scanning (opsional)
@@ -99,17 +49,7 @@ class StudentService {
       return true;
     }
 
-    try {
-      final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/scan-history'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(student.toJson()),
-      );
-
-      return response.statusCode == 201;
-    } catch (e) {
-      Logger.error('Exception in API call', e);
-      return false;
-    }
+    // Gunakan Firebase untuk production
+    return await FirebaseService.saveScanHistory(student, 'Unknown Location');
   }
 }
