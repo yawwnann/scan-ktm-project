@@ -32,30 +32,40 @@ class MyApp extends StatelessWidget {
       title: 'STNK Check UAD',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.light(
-          primary: const Color(0xFF1E88E5), // biru
-          secondary: const Color(0xFFFF9800), // oranye
-          surface: Colors.white,
-          onSurface: Colors.black,
+        colorScheme: const ColorScheme(
+          brightness: Brightness.light,
+          primary: Color(0xFF1565C0), // Biru utama
           onPrimary: Colors.white,
-          onSecondary: Colors.black,
-          error: Colors.red,
+          secondary: Color(0xFF1976D2), // Biru sekunder
+          onSecondary: Colors.white,
+          error: Color(0xFFD32F2F),
           onError: Colors.white,
+          background: Colors.white,
+          onBackground: Color(0xFF212121),
+          surface: Colors.white,
+          onSurface: Color(0xFF212121),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E88E5),
+          backgroundColor: Color(0xFF1565C0),
           foregroundColor: Colors.white,
+          centerTitle: true,
           elevation: 0,
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+          iconTheme: IconThemeData(color: Colors.white),
         ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF1E88E5),
+          selectedItemColor: const Color(0xFF1565C0),
           unselectedItemColor: Colors.grey[600],
           type: BottomNavigationBarType.fixed,
           elevation: 8,
           selectedLabelStyle: const TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
           unselectedLabelStyle: const TextStyle(
             fontSize: 12,
@@ -73,7 +83,7 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF6B35),
+            backgroundColor: const Color(0xFF1565C0),
             foregroundColor: Colors.white,
             elevation: 2,
             shadowColor: Colors.black26,
@@ -83,8 +93,8 @@ class MyApp extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             textStyle: const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
             ),
           ),
         ),
@@ -101,24 +111,24 @@ class MyApp extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 2),
+            borderSide: const BorderSide(color: Color(0xFF1565C0), width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFE53935)),
+            borderSide: const BorderSide(color: Color(0xFFD32F2F)),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 16,
           ),
           labelStyle: TextStyle(
-            color: Colors.grey.shade600,
+            color: Colors.grey.shade700,
             fontWeight: FontWeight.w500,
           ),
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
         ),
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color(0xFFFF6B35),
+          backgroundColor: Color(0xFF1565C0),
           foregroundColor: Colors.white,
           elevation: 4,
           shape: CircleBorder(),
@@ -139,7 +149,7 @@ class MyApp extends StatelessWidget {
           ),
           titleLarge: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: Color(0xFF212121),
             letterSpacing: 0.15,
           ),

@@ -282,6 +282,7 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
     String? Function(String?)? validator,
   }) {
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       value: controller.text.isEmpty ? null : controller.text,
       decoration: InputDecoration(
         labelText: labelText,
@@ -324,7 +325,7 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
         ),
         filled: true,
         fillColor: Colors.grey.shade50,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       ),
       items: items.map((item) {
         return DropdownMenuItem<String>(value: item, child: Text(item));
@@ -343,19 +344,20 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
         title: Row(
           children: [
             Container(
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 _isEditMode ? Icons.edit : Icons.person_add,
                 size: 20,
+                color: Colors.white,
               ),
             ),
             SizedBox(width: 12),
@@ -371,18 +373,18 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
               margin: EdgeInsets.only(right: 16, top: 8, bottom: 8),
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.edit, size: 16, color: Colors.orange),
+                  Icon(Icons.edit, size: 16, color: Theme.of(context).colorScheme.primary),
                   SizedBox(width: 4),
                   Text(
                     'Edit Mode',
                     style: TextStyle(
-                      color: Colors.orange,
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -406,21 +408,10 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.1),
-                            Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.05),
-                          ],
-                        ),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.2),
+                          color: Colors.grey.shade200,
                         ),
                       ),
                       child: Row(
@@ -504,7 +495,7 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
                         controller: _studyProgramController,
                         labelText: 'Program Studi *',
                         hintText: _facultyController.text.isEmpty
-                            ? 'Pilih fakultas terlebih dahulu'
+                            ? 'Pilih fakultas dulu'
                             : 'Pilih program studi',
                         prefixIcon: Icons.book_outlined,
                         items: _facultyController.text.isEmpty

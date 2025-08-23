@@ -68,7 +68,7 @@ class _ScanScreenState extends State<ScanScreen> {
 
         // Navigasi ke halaman hasil
         if (mounted) {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => ResultScreen(student: student!),
             ),
@@ -128,9 +128,9 @@ class _ScanScreenState extends State<ScanScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFF6B35),
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
               ),
@@ -197,7 +197,7 @@ class _ScanScreenState extends State<ScanScreen> {
               margin: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFFF6B35), width: 2),
+                border: Border.all(color: Theme.of(context).colorScheme.primary, width: 2),
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
@@ -232,7 +232,7 @@ class _ScanScreenState extends State<ScanScreen> {
                 icon: const Icon(Icons.keyboard, size: 20),
                 label: const Text('Input Manual NIM/Plat'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B35),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
                   elevation: 2,
                   shadowColor: Colors.black26,
@@ -251,6 +251,7 @@ class _ScanScreenState extends State<ScanScreen> {
   void _showManualInputDialog() {
     String inputValue = '';
     String inputType = 'NIM'; // atau 'Plat'
+    final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
@@ -258,39 +259,87 @@ class _ScanScreenState extends State<ScanScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: const Text('Input Manual'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Pilihan input menggunakan SegmentedButton
-                  SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment<String>(value: 'NIM', label: Text('NIM')),
-                      ButtonSegment<String>(
-                        value: 'Plat',
-                        label: Text('Nomor Plat'),
-                      ),
-                    ],
-                    selected: {inputType},
-                    onSelectionChanged: (Set<String> newSelection) {
-                      setState(() {
-                        inputType = newSelection.first;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: inputType == 'NIM'
-                          ? 'Masukkan NIM'
-                          : 'Masukkan Nomor Plat',
-                      border: const OutlineInputBorder(),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Pilihan input menggunakan SegmentedButton
+                    SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment<String>(value: 'NIM', label: Text('NIM')),
+                        ButtonSegment<String>(value: 'Plat', label: Text('Nomor Plat')),
+                      ],
+                      selected: {inputType},
+                      onSelectionChanged: (Set<String> newSelection) {
+                        setState(() {
+                          inputType = newSelection.first;
+                          inputValue = '';
+                        });
+                      },
                     ),
-                    onChanged: (value) {
-                      inputValue = value;
-                    },
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      autofocus: true,
+                      keyboardType: inputType == 'NIM' ? TextInputType.number : TextInputType.text,
+                      textCapitalization: inputType == 'NIM' ? TextCapitalization.none : TextCapitalization.characters,
+                      decoration: InputDecoration(
+                        labelText: inputType == 'NIM' ? 'Masukkan NIM' : 'Masukkan Nomor Plat',
+                        hintText: inputType == 'NIM' ? 'Contoh: 20211234' : 'Contoh: AB 1234 CD',
+                        prefixIcon: Container(
+                          margin: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            inputType == 'NIM' ? Icons.badge_outlined : Icons.directions_car_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 20,
+                          ),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      onChanged: (value) {
+                        inputValue = inputType == 'NIM' ? value.trim() : value.toUpperCase().trim();
+                      },
+                      onFieldSubmitted: (_) {
+                        if (formKey.currentState!.validate()) {
+                          Navigator.of(context).pop();
+                          _processManualInput(inputValue, inputType);
+                        }
+                      },
+                      validator: (value) {
+                        final v = (value ?? '').trim();
+                        if (v.isEmpty) {
+                          return inputType == 'NIM' ? 'NIM tidak boleh kosong' : 'Nomor plat tidak boleh kosong';
+                        }
+                        if (inputType == 'NIM' && v.length < 8) {
+                          return 'NIM minimal 8 karakter';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -299,14 +348,15 @@ class _ScanScreenState extends State<ScanScreen> {
                   },
                   child: const Text('Batal'),
                 ),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () {
-                    if (inputValue.isNotEmpty) {
+                    if (formKey.currentState!.validate()) {
                       Navigator.of(context).pop();
                       _processManualInput(inputValue, inputType);
                     }
                   },
-                  child: const Text('Cari'),
+                  icon: const Icon(Icons.search, size: 20),
+                  label: const Text('Cari'),
                 ),
               ],
             );
@@ -342,7 +392,7 @@ class _ScanScreenState extends State<ScanScreen> {
         await StudentService.saveScanHistory(student);
 
         if (mounted) {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => ResultScreen(student: student!),
             ),
@@ -377,17 +427,17 @@ class _ScanScreenState extends State<ScanScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B35).withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFFFF6B35).withOpacity(0.2),
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                     width: 1,
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.camera_alt_outlined,
                   size: 64,
-                  color: Color(0xFFFF6B35),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(height: 24),
@@ -415,7 +465,7 @@ class _ScanScreenState extends State<ScanScreen> {
                 icon: const Icon(Icons.info_outline, size: 20),
                 label: const Text('Lihat Data Demo'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B35),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
                   elevation: 2,
                   shadowColor: Colors.black26,

@@ -70,14 +70,7 @@ class StudentDetailScreen extends StatelessWidget {
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                    ],
-                  ),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -200,23 +193,10 @@ class StudentDetailScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.1),
-                          Theme.of(
-                            context,
-                          ).colorScheme.primary.withOpacity(0.05),
-                        ],
-                      ),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withOpacity(0.2),
+                        color: Colors.grey.shade200,
                         width: 1,
                       ),
                     ),
@@ -266,17 +246,10 @@ class StudentDetailScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.green[50]!,
-                          Colors.green[100]!.withOpacity(0.3),
-                        ],
-                      ),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.green.withOpacity(0.2),
+                        color: Colors.grey.shade200,
                         width: 1,
                       ),
                     ),
@@ -288,7 +261,7 @@ class StudentDetailScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.green[600],
+                                color: Theme.of(context).colorScheme.primary,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -303,7 +276,7 @@ class StudentDetailScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.green[700],
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ],
@@ -330,17 +303,10 @@ class StudentDetailScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.blue[50]!,
-                          Colors.blue[100]!.withOpacity(0.3),
-                        ],
-                      ),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.blue.withOpacity(0.2),
+                        color: Colors.grey.shade200,
                         width: 1,
                       ),
                     ),
@@ -352,7 +318,7 @@ class StudentDetailScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.blue[600],
+                                color: Theme.of(context).colorScheme.primary,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -367,7 +333,7 @@ class StudentDetailScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.blue[700],
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ],

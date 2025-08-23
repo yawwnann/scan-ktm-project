@@ -50,9 +50,9 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFF6B35),
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(20),
                 bottomRight: Radius.circular(20),
               ),
@@ -103,17 +103,17 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
 
           Expanded(
             child: isLoading
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xFFFF6B35),
+                            Theme.of(context).colorScheme.primary,
                           ),
                         ),
-                        SizedBox(height: 16),
-                        Text('Memuat riwayat scan...'),
+                        const SizedBox(height: 16),
+                        const Text('Memuat riwayat scan...'),
                       ],
                     ),
                   )

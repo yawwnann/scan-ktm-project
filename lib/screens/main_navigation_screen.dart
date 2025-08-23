@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'scan_screen.dart';
 import 'student_list_screen.dart';
 import 'scan_history_screen.dart';
+import 'profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -18,6 +19,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     const ScanScreen(key: ValueKey('scan')),
     const StudentListScreen(key: ValueKey('student_list')),
     const ScanHistoryScreen(key: ValueKey('scan_history')),
+    const ProfileScreen(key: ValueKey('profile')),
   ];
 
   final RouteObserver<ModalRoute<void>> _routeObserver =
@@ -135,6 +137,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
               icon: Icon(Icons.access_time_outlined),
               activeIcon: Icon(Icons.access_time),
               label: 'Riwayat',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outlined),
+              activeIcon: Icon(Icons.person),
+              label: 'Profil',
             ),
           ],
         ),

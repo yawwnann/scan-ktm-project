@@ -12,7 +12,7 @@ class ResultScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hasil Scanning'),
-        backgroundColor: Colors.green[600],
+        backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -25,7 +25,7 @@ class ResultScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
-                color: Colors.green[600],
+                color: Theme.of(context).colorScheme.primary,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
@@ -84,7 +84,7 @@ class ResultScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.person,
-                        color: Colors.blue[600],
+                        color: Theme.of(context).colorScheme.primary,
                         size: 30,
                       ),
                       const SizedBox(width: 15),
@@ -131,7 +131,7 @@ class ResultScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.directions_car,
-                        color: Colors.orange[600],
+                        color: Theme.of(context).colorScheme.primary,
                         size: 30,
                       ),
                       const SizedBox(width: 15),
@@ -164,16 +164,12 @@ class ResultScreen extends StatelessWidget {
                     height: 55,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => const ScanScreen(),
-                          ),
-                        );
+                        Navigator.of(context).pop();
                       },
                       icon: const Icon(Icons.qr_code_scanner),
                       label: const Text('Scan KTM Lain'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[600],
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
@@ -195,8 +191,8 @@ class ResultScreen extends StatelessWidget {
                       icon: const Icon(Icons.share),
                       label: const Text('Bagikan Hasil'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.blue[600],
-                        side: BorderSide(color: Colors.blue[600]!),
+                        foregroundColor: Theme.of(context).colorScheme.primary,
+                        side: BorderSide(color: Theme.of(context).colorScheme.primary),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
                         ),

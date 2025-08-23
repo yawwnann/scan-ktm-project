@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'main_navigation_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'auth_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,36 +13,71 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
+  late AnimationController _pulseController;
+  late Animation<double> _logoScale;
+  late Animation<double> _logoFade;
+  late Animation<Offset> _titleSlide;
+  late Animation<double> _titleOpacity;
+  late Animation<double> _subtitleOpacity;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1600),
       vsync: this,
     );
-    _animation = CurvedAnimation(
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    )..repeat();
+
+    // Staggered animations
+    _logoScale = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeIn,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
     );
+    _logoFade = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+    );
+    _titleSlide = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.55, 0.9, curve: Curves.easeOut),
+          ),
+        );
+    _titleOpacity = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.55, 0.9, curve: Curves.easeIn),
+    );
+    _subtitleOpacity = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.7, 1.0, curve: Curves.easeIn),
+    );
+
     _controller.forward();
-    Timer(
-      const Duration(seconds: 3),
-      () => Navigator.pushReplacement(
+
+    Timer(const Duration(milliseconds: 2500), () {
+      final user = FirebaseAuth.instance.currentUser;
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const MainNavigationScreen(),
+          builder: (context) =>
+              user == null ? const AuthScreen() : const MainNavigationScreen(),
         ),
-      ),
-    );
+      );
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -48,43 +85,87 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1E88E5), Color(0xFF64B5F6)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
+        decoration: const BoxDecoration(color: Color(0xFF1565C0)),
         child: Center(
-          child: FadeTransition(
-            opacity: _animation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/logo.png', width: 150, height: 150),
-                const SizedBox(height: 20),
-                const Text(
-                  'STNK Check UAD',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+          child: AnimatedBuilder(
+            animation: Listenable.merge([_controller, _pulseController]),
+            builder: (context, _) {
+              final pulseValue = _pulseController.value; // 0..1
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Pulse ring behind the logo
+                      Transform.scale(
+                        scale: 1.0 + (0.4 * pulseValue),
+                        child: Opacity(
+                          opacity: (1.0 - pulseValue) * 0.6,
+                          child: Container(
+                            width: 140,
+                            height: 140,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Logo
+                      ScaleTransition(
+                        scale: _logoScale,
+                        child: FadeTransition(
+                          opacity: _logoFade,
+                          child: Container(
+                            width: 120,
+                            height: 120,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            padding: const EdgeInsets.all(16),
+                            child: Image.asset('assets/logo.png'),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Version 1.0.0',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
+                  const SizedBox(height: 20),
+                  FadeTransition(
+                    opacity: _titleOpacity,
+                    child: SlideTransition(
+                      position: _titleSlide,
+                      child: const Text(
+                        'SELAMAT DATANG DI IQRO',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 40),
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ],
-            ),
+                  const SizedBox(height: 10),
+                  FadeTransition(
+                    opacity: _subtitleOpacity,
+                    child: const Text(
+                      'Versi 1.0.0',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
