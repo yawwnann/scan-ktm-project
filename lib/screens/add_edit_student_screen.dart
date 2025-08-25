@@ -5,12 +5,13 @@ import '../services/firebase_service.dart';
 import '../utils/logger.dart';
 import '../config/app_config.dart';
 import '../data/demo_data.dart';
-import 'main_navigation_screen.dart';
 
 class AddEditStudentScreen extends StatefulWidget {
   final Student? student;
+  final String? initialBarcode;
+  final String? scanMethod;
 
-  const AddEditStudentScreen({super.key, this.student});
+  const AddEditStudentScreen({super.key, this.student, this.initialBarcode, this.scanMethod});
 
   @override
   State<AddEditStudentScreen> createState() => _AddEditStudentScreenState();
@@ -39,6 +40,8 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
       _studyProgramController.text = widget.student!.studyProgram;
       _vehicleNumberController.text = widget.student!.vehicleNumber;
       _vehicleTypeController.text = widget.student!.vehicleType;
+    } else if (widget.initialBarcode != null) {
+      _nimController.text = widget.initialBarcode!;
     }
   }
 
@@ -86,68 +89,32 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
         }
       }
 
+      if (!mounted) return;
+
       if (success) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text(
-                    _isEditMode
-                        ? 'Mahasiswa berhasil diupdate'
-                        : 'Mahasiswa berhasil ditambahkan',
-                  ),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-          Navigator.of(context).pop(true);
-        }
+        final successMessage = _isEditMode
+            ? 'Mahasiswa berhasil diupdate'
+            : 'Mahasiswa berhasil ditambahkan';
+        _showCustomSnackBar(
+          message: successMessage,
+          icon: Icons.check_circle,
+          backgroundColor: Colors.green,
+        );
+        Navigator.of(context).pop(true);
       } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.error, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Gagal menyimpan data mahasiswa'),
-                ],
-              ),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-        }
+        _showCustomSnackBar(
+          message: 'Gagal menyimpan data mahasiswa',
+          icon: Icons.error,
+          backgroundColor: Colors.red,
+        );
       }
     } catch (e) {
       Logger.error('Error saving student: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.warning, color: Colors.white),
-                SizedBox(width: 12),
-                Expanded(child: Text('Error: $e')),
-              ],
-            ),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        _showCustomSnackBar(
+          message: 'Terjadi kesalahan: $e',
+          icon: Icons.warning,
+          backgroundColor: Colors.orange,
         );
       }
     } finally {
@@ -157,6 +124,34 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
         });
       }
     }
+  }
+
+  void _showCustomSnackBar({
+    required String message,
+    required IconData icon,
+    required Color backgroundColor,
+  }) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   Widget _buildSectionCard(String title, List<Widget> children) {
@@ -175,7 +170,7 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).colorScheme.primary.withOpacity(0.1),
+                    ).colorScheme.primary.withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -204,6 +199,64 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
     );
   }
 
+  InputDecoration _getBaseInputDecoration({
+    required String labelText,
+    required String hintText,
+    required IconData prefixIcon,
+    bool enabled = true,
+  }) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final lightGrey = Colors.grey.shade300;
+    final lighterGrey = Colors.grey.shade200;
+
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      prefixIcon: Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: enabled
+              ? primaryColor.withAlpha((255 * 0.1).round())
+              : Colors.grey.withAlpha((255 * 0.1).round()),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          prefixIcon,
+          color: enabled ? primaryColor : Colors.grey,
+          size: 20,
+        ),
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: lightGrey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: lightGrey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primaryColor, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: lighterGrey),
+      ),
+      filled: true,
+      fillColor: enabled ? Colors.grey.shade50 : Colors.grey.shade100,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   Widget _buildTextFormField({
     required TextEditingController controller,
     required String labelText,
@@ -217,56 +270,11 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
       controller: controller,
       enabled: enabled,
       keyboardType: keyboardType,
-      decoration: InputDecoration(
+      decoration: _getBaseInputDecoration(
         labelText: labelText,
         hintText: hintText,
-        prefixIcon: Container(
-          margin: EdgeInsets.all(12),
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: enabled
-                ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                : Colors.grey.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            prefixIcon,
-            color: enabled
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey,
-            size: 20,
-          ),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
-            width: 2,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red, width: 2),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        filled: true,
-        fillColor: enabled ? Colors.grey.shade50 : Colors.grey.shade100,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        prefixIcon: prefixIcon,
+        enabled: enabled,
       ),
       validator: validator,
     );
@@ -283,50 +291,18 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
   }) {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: controller.text.isEmpty ? null : controller.text,
-      decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
-        prefixIcon: Container(
-          margin: EdgeInsets.all(12),
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+      initialValue: controller.text.isEmpty ? null : controller.text,
+      decoration:
+          _getBaseInputDecoration(
+            labelText: labelText,
+            hintText: hintText,
+            prefixIcon: prefixIcon,
+          ).copyWith(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 16,
+            ),
           ),
-          child: Icon(
-            prefixIcon,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
-          ),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
-            width: 2,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red, width: 2),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red, width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      ),
       items: items.map((item) {
         return DropdownMenuItem<String>(value: item, child: Text(item));
       }).toList(),
@@ -351,7 +327,7 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
             Container(
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withAlpha((255 * 0.2).round()),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -373,13 +349,19 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
               margin: EdgeInsets.only(right: 16, top: 8, bottom: 8),
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withAlpha((255 * 0.15).round()),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.edit, size: 16, color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Icons.edit,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   SizedBox(width: 4),
                   Text(
                     'Edit Mode',
@@ -410,9 +392,7 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.grey.shade200,
-                        ),
+                        border: Border.all(color: Colors.grey.shade200),
                       ),
                       child: Row(
                         children: [
@@ -577,7 +557,7 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
                       elevation: 3,
                       shadowColor: Theme.of(
                         context,
-                      ).colorScheme.primary.withOpacity(0.3),
+                      ).colorScheme.primary.withAlpha((255 * 0.3).round()),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -599,7 +579,9 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
                               Container(
                                 padding: EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.white.withAlpha(
+                                    (255 * 0.2).round(),
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Icon(

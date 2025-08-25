@@ -55,9 +55,9 @@ class ProfileScreen extends StatelessWidget {
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal logout: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Gagal logout: $e')));
         }
       }
     }
@@ -104,8 +104,8 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Profil Pengguna',
+                  Text(
+                    user?.displayName ?? 'Pengguna',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -164,7 +164,11 @@ class ProfileScreen extends StatelessWidget {
                                   color: color.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Icon(Icons.info_outline, color: color, size: 20),
+                                child: Icon(
+                                  Icons.info_outline,
+                                  color: color,
+                                  size: 20,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Text(
@@ -178,8 +182,14 @@ class ProfileScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 20),
-                          _buildInfoRow('Email', user?.email ?? 'Tidak diketahui'),
-                          _buildInfoRow('Nama', user?.displayName ?? 'Belum diatur'),
+                          _buildInfoRow(
+                            'Email',
+                            user?.email ?? 'Tidak diketahui',
+                          ),
+                          _buildInfoRow(
+                            'Nama',
+                            user?.displayName ?? 'Belum diatur',
+                          ),
                           _buildInfoRow('UID', user?.uid ?? 'Tidak diketahui'),
                           _buildInfoRow(
                             'Terverifikasi',
@@ -217,10 +227,7 @@ class ProfileScreen extends StatelessWidget {
                   // App Info
                   Text(
                     'STNK Check UAD v1.0.0',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
                   ),
                 ],
               ),
@@ -250,18 +257,12 @@ class ProfileScreen extends StatelessWidget {
           ),
           const Text(
             ': ',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
           ),
         ],

@@ -1,9 +1,8 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../models/student.dart';
+import '../models/scan_history.dart';
 import '../utils/logger.dart';
-
-import 'package:firebase_core/firebase_core.dart';
 
 class FirebaseService {
   static final DatabaseReference _database = FirebaseDatabase.instanceFor(
@@ -11,6 +10,7 @@ class FirebaseService {
     databaseURL:
         'https://scan-ktm-default-rtdb.asia-southeast1.firebasedatabase.app',
   ).ref();
+  
   // Get student by NIM
   static Future<Student?> getStudentByNIM(String nim) async {
     try {
@@ -48,24 +48,62 @@ class FirebaseService {
     }
   }
 
-  // Save scan history
-  static Future<bool> saveScanHistory(Student student, String location) async {
+  // Save scan history with scan method
+  static Future<bool> saveScanHistory(Student student, String location, {String scanMethod = 'unknown'}) async {
     try {
       final scanData = {
         'student_nim': student.nim,
         'student_name': student.name,
-        'scan_time': DateTime.now().millisecondsSinceEpoch,
-        'location': location,
+        'faculty': student.faculty,
+        'study_program': student.studyProgram,
         'vehicle_number': student.vehicleNumber,
         'vehicle_type': student.vehicleType,
+        'scan_time': DateTime.now().millisecondsSinceEpoch,
+        'scan_method': scanMethod,
+        'location': location,
       };
 
       await _database.child('scan_history').push().set(scanData);
-      Logger.info('Scan history saved for ${student.name}');
+      Logger.info('Scan history saved for ${student.name} via $scanMethod');
       return true;
     } catch (e) {
       Logger.error('Error saving scan history: $e');
       return false;
+    }
+  }
+
+  // Get all scan history
+  static Future<List<ScanHistory>> getAllScanHistory() async {
+    try {
+      final snapshot = await _database.child('scan_history').get();
+      if (snapshot.exists) {
+        final historyData = snapshot.value as Map<dynamic, dynamic>;
+        final historyList = <ScanHistory>[];
+        
+        historyData.forEach((key, value) {
+          final history = ScanHistory.fromFirestore(value as Map<dynamic, dynamic>, key);
+          historyList.add(history);
+        });
+        
+        // Sort by most recent first
+        historyList.sort((a, b) => b.scanTime.compareTo(a.scanTime));
+        return historyList;
+      }
+      return [];
+    } catch (e) {
+      Logger.error('Error getting scan history: $e');
+      return [];
+    }
+  }
+
+  // Get scan history as Student objects for compatibility
+  static Future<List<Student>> getScanHistoryAsStudents() async {
+    try {
+      final historyList = await getAllScanHistory();
+      return historyList.map((history) => history.toStudent()).toList();
+    } catch (e) {
+      Logger.error('Error getting scan history as students: $e');
+      return [];
     }
   }
 

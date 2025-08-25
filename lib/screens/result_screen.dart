@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/student.dart';
-import 'scan_screen.dart';
+
 
 class ResultScreen extends StatelessWidget {
   final Student student;

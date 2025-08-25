@@ -38,6 +38,16 @@ dependencies:
   # Barcode scanner
   mobile_scanner: ^3.5.6
 
+  # OCR (Text Recognition)
+  google_mlkit_text_recognition: ^0.11.0
+  
+  # Camera untuk OCR
+  camera: ^0.10.5+9
+  image_picker: ^1.0.7
+  
+  # Image processing
+  image: ^4.1.7
+
   # HTTP requests untuk API
   http: ^1.1.0
 

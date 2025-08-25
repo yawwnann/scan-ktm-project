@@ -40,16 +40,28 @@ class StudentService {
     return await FirebaseService.getStudentByVehicleNumber(vehicleNumber);
   }
 
-  // Fungsi untuk menyimpan riwayat scanning (opsional)
-  static Future<bool> saveScanHistory(Student student) async {
+  // Fungsi untuk menyimpan riwayat scanning dengan method scan
+  static Future<bool> saveScanHistory(Student student, {String scanMethod = 'unknown'}) async {
     // Gunakan demo data jika dalam mode development
     if (AppConfig.isDevelopment) {
-      // Untuk demo, anggap selalu berhasil
-      Logger.info('Demo mode: Data scanning disimpan untuk ${student.name}');
+      // Tambahkan ke riwayat scan demo
+      DemoData.addScanHistory(student, scanMethod);
+      Logger.info('Demo mode: Data scanning disimpan untuk ${student.name} via $scanMethod');
       return true;
     }
 
     // Gunakan Firebase untuk production
-    return await FirebaseService.saveScanHistory(student, 'Unknown Location');
+    return await FirebaseService.saveScanHistory(student, 'Campus Gate', scanMethod: scanMethod);
+  }
+
+  // Fungsi untuk mendapatkan riwayat scan
+  static Future<List<Student>> getScanHistory() async {
+    // Gunakan demo data jika dalam mode development
+    if (AppConfig.isDevelopment) {
+      return DemoData.getScanHistoryAsStudents();
+    }
+
+    // Gunakan Firebase untuk production
+    return await FirebaseService.getScanHistoryAsStudents();
   }
 }

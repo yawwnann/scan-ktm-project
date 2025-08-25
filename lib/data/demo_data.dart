@@ -1,4 +1,5 @@
 import '../models/student.dart';
+import '../models/scan_history.dart';
 
 class DemoData {
   // Data demo mahasiswa untuk testing
@@ -49,6 +50,9 @@ class DemoData {
       scanTime: DateTime.now(),
     ),
   ];
+
+  // Separate scan history list - tracks every scan event
+  static final List<ScanHistory> scanHistory = [];
 
   // Fungsi untuk mencari mahasiswa berdasarkan NIM
   static Student? findStudentByNIM(String nim) {
@@ -146,5 +150,48 @@ class DemoData {
       'faculty_stats': facultyStats,
       'vehicle_type_stats': vehicleTypeStats,
     };
+  }
+
+  // ===== SCAN HISTORY FUNCTIONS =====
+  
+  // Add scan history entry
+  static void addScanHistory(Student student, String scanMethod) {
+    final history = ScanHistory.fromStudent(
+      student,
+      scanMethod: scanMethod,
+      location: 'Campus Gate',
+    );
+    scanHistory.add(history);
+  }
+
+  // Get all scan history (sorted by most recent first)
+  static List<ScanHistory> getAllScanHistory() {
+    final sortedHistory = List<ScanHistory>.from(scanHistory);
+    sortedHistory.sort((a, b) => b.scanTime.compareTo(a.scanTime));
+    return sortedHistory;
+  }
+
+  // Get scan history as Student objects for compatibility with existing screens
+  static List<Student> getScanHistoryAsStudents() {
+    final sortedHistory = getAllScanHistory();
+    return sortedHistory.map((history) => history.toStudent()).toList();
+  }
+
+  // Clear all scan history
+  static void clearScanHistory() {
+    scanHistory.clear();
+  }
+
+  // Get scan history count
+  static int getScanHistoryCount() {
+    return scanHistory.length;
+  }
+
+  // Get scan history for specific student
+  static List<ScanHistory> getScanHistoryForStudent(String nim) {
+    return scanHistory
+        .where((history) => history.studentNim == nim)
+        .toList()
+      ..sort((a, b) => b.scanTime.compareTo(a.scanTime));
   }
 }

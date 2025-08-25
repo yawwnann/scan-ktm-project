@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'scan_screen.dart';
+import 'ocr_screen.dart';
 import 'student_list_screen.dart';
 import 'scan_history_screen.dart';
 import 'profile_screen.dart';
@@ -17,6 +18,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
 
   final List<Widget> _screens = [
     const ScanScreen(key: ValueKey('scan')),
+    const OCRScreen(key: ValueKey('ocr')),
     const StudentListScreen(key: ValueKey('student_list')),
     const ScanHistoryScreen(key: ValueKey('scan_history')),
     const ProfileScreen(key: ValueKey('profile')),
@@ -126,7 +128,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
             BottomNavigationBarItem(
               icon: Icon(Icons.document_scanner_outlined),
               activeIcon: Icon(Icons.document_scanner),
-              label: 'Scanner',
+              label: 'Barcode',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.text_fields_outlined),
+              activeIcon: Icon(Icons.text_fields),
+              label: 'OCR',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.group_outlined),

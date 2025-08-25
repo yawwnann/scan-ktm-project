@@ -1,0 +1,540 @@
+import 'dart:io';
+import 'dart:convert';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:image_picker/image_picker.dart';
+import '../models/student.dart';
+import '../utils/logger.dart';
+import 'student_service.dart';
+
+class OCRService {
+  static final TextRecognizer _textRecognizer = TextRecognizer();
+  static final ImagePicker _imagePicker = ImagePicker();
+
+  /// Ambil gambar dari kamera untuk OCR
+  static Future<File?> captureImageFromCamera() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+        preferredCameraDevice: CameraDevice.rear,
+      );
+
+      if (image != null) {
+        return File(image.path);
+      }
+      return null;
+    } catch (e) {
+      Logger.error('Error capturing image from camera: $e');
+      return null;
+    }
+  }
+
+  /// Ambil gambar dari galeri untuk OCR
+  static Future<File?> pickImageFromGallery() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        return File(image.path);
+      }
+      return null;
+    } catch (e) {
+      Logger.error('Error picking image from gallery: $e');
+      return null;
+    }
+  }
+
+  /// Ekstrak teks dari gambar menggunakan OCR
+  static Future<String> extractTextFromImage(File imageFile) async {
+    try {
+      final InputImage inputImage = InputImage.fromFile(imageFile);
+      final RecognizedText recognizedText = await _textRecognizer.processImage(
+        inputImage,
+      );
+
+      return recognizedText.text;
+    } catch (e) {
+      Logger.error('Error extracting text from image: $e');
+      throw Exception('Gagal mengekstrak teks dari gambar: $e');
+    }
+  }
+
+  /// Ekstrak informasi mahasiswa dari teks OCR dengan algoritma yang lebih akurat
+  static OCRResult extractStudentInfoFromText(String text) {
+    final lines = text
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+
+    String? nim;
+    String? name;
+    String? faculty;
+    String? studyProgram;
+    String? vehicleNumber;
+
+    // Pattern untuk mendeteksi NIM (tepat 10 digit angka)
+    final nimPattern = RegExp(r'\b\d{10}\b');
+
+    // Pattern untuk mendeteksi nomor plat kendaraan
+    final platePattern = RegExp(r'\b[A-Z]{1,2}\s*\d{1,4}\s*[A-Z]{1,3}\b');
+
+    // Pattern untuk nama lengkap (lebih fleksibel)
+    final namePattern = RegExp(r'^[A-Za-z\s\.\,\-]+$');
+
+    // Keywords untuk fakultas (lebih komprehensif)
+    final facultyKeywords = [
+      'fakultas',
+      'fak',
+      'faculty',
+      'keguruan',
+      'ekonomi',
+      'psikologi',
+      'sains',
+      'teknologi',
+      'farmasi',
+      'hukum',
+      'sastra',
+      'budaya',
+      'komunikasi',
+      'agama',
+      'islam',
+      'kesehatan',
+      'masyarakat',
+      'kedokteran',
+      'teknik',
+      'pertanian',
+      'peternakan',
+      'perikanan',
+      'kehutanan',
+      'ilmu',
+      'sosial',
+      'politik',
+      'adab',
+      'dakwah',
+      'syariah',
+      'tarbiyah',
+      'ushuluddin',
+    ];
+
+    // Keywords untuk program studi (lebih komprehensif)
+    final prodiKeywords = [
+      'program studi',
+      'prodi',
+      'jurusan',
+      'program',
+      'pendidikan',
+      'teknik',
+      'manajemen',
+      'akuntansi',
+      'informatika',
+      'sistem informasi',
+      'biologi',
+      'fisika',
+      'matematika',
+      'kimia',
+      'bahasa',
+      'sastra',
+      'sejarah',
+      'ekonomi',
+      'hukum',
+      'psikologi',
+      'farmasi',
+      'kedokteran',
+      'keperawatan',
+      'kebidanan',
+      'gizi',
+      'kesehatan',
+      'arsitektur',
+      'sipil',
+      'elektro',
+      'mesin',
+      'industri',
+      'komputer',
+      'komunikasi',
+      'jurnalistik',
+      'hubungan',
+      'internasional',
+      'administrasi',
+      'bisnis',
+      'keuangan',
+      'perbankan',
+      'pemasaran',
+    ];
+
+    // Kata kunci yang harus dihindari untuk nama
+    final excludeWords = [
+      'universitas',
+      'institut',
+      'sekolah',
+      'tinggi',
+      'kartu',
+      'mahasiswa',
+      'student',
+      'card',
+      'ktm',
+      'identity',
+      'id',
+      'nomor',
+      'number',
+      'fakultas',
+      'program',
+      'jurusan',
+      'prodi',
+      'nim',
+      'semester',
+      'tahun',
+      'angkatan',
+      'kelas',
+      'tempat',
+      'tanggal',
+      'lahir',
+      'alamat',
+      'jenis',
+      'kelamin',
+      'agama',
+      'status',
+      'berlaku',
+      'sampai',
+      'dengan',
+    ];
+
+    // Ekstrak NIM terlebih dahulu (prioritas utama)
+    for (final line in lines) {
+      if (nim == null) {
+        final nimMatch = nimPattern.firstMatch(line);
+        if (nimMatch != null) {
+          nim = nimMatch.group(0);
+          break; // Ambil NIM pertama yang ditemukan
+        }
+      }
+    }
+
+    // Ekstrak informasi dengan pendekatan posisional dan kontekstual
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].toLowerCase();
+      final originalLine = lines[i];
+
+      // Cari nomor plat kendaraan
+      if (vehicleNumber == null) {
+        final plateMatch = platePattern.firstMatch(originalLine.toUpperCase());
+        if (plateMatch != null) {
+          vehicleNumber = plateMatch.group(0)?.replaceAll(RegExp(r'\s+'), ' ');
+        }
+      }
+
+      // Cari fakultas dengan pendekatan yang lebih fleksibel
+      if (faculty == null) {
+        // Cek apakah baris mengandung kata kunci fakultas
+        bool containsFacultyKeyword = facultyKeywords.any((keyword) => line.contains(keyword));
+        
+        if (containsFacultyKeyword) {
+          faculty = originalLine;
+        } else {
+          // Cek baris yang mungkin fakultas berdasarkan pola umum
+          if (originalLine.length > 10 && originalLine.length < 80) {
+            // Cek apakah mengandung kata-kata yang umum di nama fakultas
+            final facultyIndicators = ['fakultas', 'fak', 'ilmu', 'teknik', 'ekonomi', 'hukum', 'kedokteran', 'pertanian', 'sastra', 'sosial', 'agama', 'keguruan', 'pendidikan'];
+            if (facultyIndicators.any((indicator) => line.contains(indicator))) {
+              faculty = originalLine;
+            }
+          }
+        }
+      }
+
+      // Cari program studi dengan pendekatan yang lebih fleksibel
+      if (studyProgram == null) {
+        // Cek apakah baris mengandung kata kunci program studi
+        bool containsProdiKeyword = prodiKeywords.any((keyword) => line.contains(keyword));
+        
+        if (containsProdiKeyword) {
+          studyProgram = originalLine;
+        } else {
+          // Cek baris setelah fakultas yang mungkin program studi
+          if (faculty != null && i > 0) {
+            // Jika baris sebelumnya adalah fakultas, baris ini mungkin program studi
+            final prevLine = lines[i-1].toLowerCase();
+            if (facultyKeywords.any((keyword) => prevLine.contains(keyword))) {
+              if (originalLine.length > 5 && originalLine.length < 60 && 
+                  !nimPattern.hasMatch(originalLine) &&
+                  !platePattern.hasMatch(originalLine.toUpperCase())) {
+                studyProgram = originalLine;
+              }
+            }
+          }
+        }
+      }
+
+      // Cari nama lengkap dengan algoritma yang lebih cerdas
+      if (name == null && originalLine.length > 3 && originalLine.length < 60) {
+        // Pastikan baris hanya mengandung huruf, spasi, dan karakter nama yang valid
+        if (namePattern.hasMatch(originalLine)) {
+          final lowerLine = originalLine.toLowerCase();
+          
+          // Pastikan tidak mengandung angka (kecuali di akhir untuk gelar)
+          bool hasNumbers = RegExp(r'\d').hasMatch(originalLine);
+          
+          // Pastikan tidak mengandung kata kunci yang harus dihindari
+          bool hasExcludeWords = excludeWords.any((word) => lowerLine.contains(word));
+          
+          // Pastikan bukan NIM atau nomor plat
+          bool isNimOrPlate = nimPattern.hasMatch(originalLine) || 
+                             platePattern.hasMatch(originalLine.toUpperCase());
+          
+          // Cek apakah baris ini kemungkinan nama berdasarkan posisi
+          bool likelyName = false;
+          
+          // Nama biasanya muncul setelah NIM atau di awal dokumen
+          if (nim != null) {
+            // Cari baris setelah NIM ditemukan
+            for (int j = 0; j < lines.length; j++) {
+              if (lines[j].contains(nim)) {
+                if (i > j && i <= j + 3) { // Nama biasanya 1-3 baris setelah NIM
+                  likelyName = true;
+                  break;
+                }
+              }
+            }
+          } else if (i < 5) {
+            // Jika NIM belum ditemukan, nama mungkin di 5 baris pertama
+            likelyName = true;
+          }
+          
+          // Cek apakah mengandung pola nama yang umum (minimal 2 kata)
+          final words = originalLine.split(' ').where((w) => w.isNotEmpty).toList();
+          bool hasMultipleWords = words.length >= 2;
+          
+          // Cek apakah kata-kata terlihat seperti nama (huruf kapital di awal)
+          bool looksLikeName = words.every((word) => 
+            word.isNotEmpty && 
+            word[0].toUpperCase() == word[0] &&
+            RegExp(r'^[A-Za-z\.\-]+$').hasMatch(word)
+          );
+          
+          if (!hasNumbers && !hasExcludeWords && !isNimOrPlate && 
+              hasMultipleWords && looksLikeName && likelyName) {
+            name = originalLine;
+          }
+        }
+      }
+    }
+
+    // Post-processing: bersihkan hasil ekstraksi
+    if (name != null) {
+      // Hapus karakter yang tidak perlu di awal/akhir
+      name = name.replaceAll(RegExp(r'^[^\w]+|[^\w]+$'), '').trim();
+      // Pastikan nama tidak terlalu pendek atau panjang
+      if (name.length < 3 || name.length > 50) {
+        name = null;
+      }
+    }
+
+    if (faculty != null) {
+      // Bersihkan fakultas dari karakter yang tidak perlu
+      faculty = faculty.replaceAll(RegExp(r'^[^\w\s]+|[^\w\s]+$'), '').trim();
+      if (faculty.length < 5) {
+        faculty = null;
+      }
+    }
+
+    if (studyProgram != null) {
+      // Bersihkan program studi dari karakter yang tidak perlu
+      studyProgram = studyProgram.replaceAll(RegExp(r'^[^\w\s]+|[^\w\s]+$'), '').trim();
+      if (studyProgram.length < 3) {
+        studyProgram = null;
+      }
+    }
+
+    return OCRResult(
+      extractedText: text,
+      nim: nim,
+      name: name,
+      faculty: faculty,
+      studyProgram: studyProgram,
+      vehicleNumber: vehicleNumber,
+    );
+  }
+
+  /// Proses gambar dan cari data mahasiswa dengan format JSON response
+  static Future<OCRProcessResult> processImageAndFindStudent(
+    File imageFile,
+  ) async {
+    try {
+      // Ekstrak teks dari gambar
+      final extractedText = await extractTextFromImage(imageFile);
+
+      if (extractedText.isEmpty) {
+        return OCRProcessResult(
+          success: false,
+          message: 'Tidak ada teks yang terdeteksi dalam gambar',
+          extractedText: extractedText,
+        );
+      }
+
+      // Ekstrak informasi mahasiswa dari teks
+      final ocrResult = extractStudentInfoFromText(extractedText);
+
+      // Validasi NIM harus ada dan tepat 10 digit
+      if (ocrResult.nim == null || ocrResult.nim!.length != 10) {
+        return OCRProcessResult(
+          success: false,
+          message: 'NIM tidak terdeteksi atau tidak valid (harus 10 digit)',
+          ocrResult: ocrResult,
+          extractedText: extractedText,
+          jsonResponse: _createOCROnlyResponse(ocrResult, 'NIM tidak valid'),
+        );
+      }
+
+      Student? student;
+
+      // Cek apakah NIM tersebut ada di database
+      student = await StudentService.getStudentByNIM(ocrResult.nim!);
+
+      if (student != null) {
+        // NIM cocok dengan database - kembalikan data mahasiswa sesuai database
+        await StudentService.saveScanHistory(student, scanMethod: 'ocr');
+
+        return OCRProcessResult(
+          success: true,
+          message: 'Data mahasiswa ditemukan di database',
+          student: student,
+          ocrResult: ocrResult,
+          extractedText: extractedText,
+          jsonResponse: _createDatabaseResponse(student),
+        );
+      } else {
+        // NIM tidak ditemukan di database - tampilkan hasil ekstraksi OCR dengan status "belum ada"
+        return OCRProcessResult(
+          success: false,
+          message: 'NIM tidak ditemukan di database',
+          ocrResult: ocrResult,
+          extractedText: extractedText,
+          jsonResponse: _createOCROnlyResponse(ocrResult, 'belum ada'),
+        );
+      }
+    } catch (e) {
+      Logger.error('Error processing image: $e');
+      return OCRProcessResult(
+        success: false,
+        message: 'Terjadi kesalahan saat memproses gambar: $e',
+        extractedText: '',
+        jsonResponse: _createErrorResponse(e.toString()),
+      );
+    }
+  }
+
+  /// Membuat response JSON untuk data dari database
+  static Map<String, dynamic> _createDatabaseResponse(Student student) {
+    return {
+      'status': 'found',
+      'source': 'database',
+      'data': {
+        'nim': student.nim,
+        'nama_lengkap': student.name,
+        'fakultas': student.faculty,
+        'program_studi': student.studyProgram,
+        'nomor_kendaraan': student.vehicleNumber,
+        'jenis_kendaraan': student.vehicleType,
+        'waktu_scan': student.scanTime.toIso8601String(),
+      },
+    };
+  }
+
+  /// Membuat response JSON untuk data dari OCR saja
+  static Map<String, dynamic> _createOCROnlyResponse(
+    OCRResult ocrResult,
+    String status,
+  ) {
+    return {
+      'status': status,
+      'source': 'ocr',
+      'data': {
+        'nim': ocrResult.nim,
+        'nama_lengkap': ocrResult.name,
+        'fakultas': ocrResult.faculty,
+        'program_studi': ocrResult.studyProgram,
+        'nomor_kendaraan': ocrResult.vehicleNumber,
+      },
+    };
+  }
+
+  /// Membuat response JSON untuk error
+  static Map<String, dynamic> _createErrorResponse(String error) {
+    return {
+      'status': 'error',
+      'source': 'system',
+      'message': error,
+      'data': null,
+    };
+  }
+
+  /// Dispose text recognizer
+  static void dispose() {
+    _textRecognizer.close();
+  }
+}
+
+/// Model untuk hasil OCR
+class OCRResult {
+  final String extractedText;
+  final String? nim;
+  final String? name;
+  final String? faculty;
+  final String? studyProgram;
+  final String? vehicleNumber;
+
+  OCRResult({
+    required this.extractedText,
+    this.nim,
+    this.name,
+    this.faculty,
+    this.studyProgram,
+    this.vehicleNumber,
+  });
+
+  /// Konversi ke JSON untuk response
+  Map<String, dynamic> toJson() {
+    return {
+      'nim': nim,
+      'nama_lengkap': name,
+      'fakultas': faculty,
+      'program_studi': studyProgram,
+      'nomor_kendaraan': vehicleNumber,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'OCRResult(nim: $nim, name: $name, faculty: $faculty, studyProgram: $studyProgram, vehicleNumber: $vehicleNumber)';
+  }
+}
+
+/// Model untuk hasil proses OCR lengkap
+class OCRProcessResult {
+  final bool success;
+  final String message;
+  final Student? student;
+  final OCRResult? ocrResult;
+  final String extractedText;
+  final Map<String, dynamic>? jsonResponse;
+
+  OCRProcessResult({
+    required this.success,
+    required this.message,
+    this.student,
+    this.ocrResult,
+    required this.extractedText,
+    this.jsonResponse,
+  });
+
+  /// Mendapatkan response dalam format JSON string
+  String getJsonString() {
+    if (jsonResponse != null) {
+      return jsonEncode(jsonResponse);
+    }
+    return '{}';
+  }
+}

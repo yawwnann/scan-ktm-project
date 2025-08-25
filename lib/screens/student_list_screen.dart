@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/student.dart';
+import '../models/faculty_data.dart';
 import '../services/firebase_service.dart';
 import '../utils/logger.dart';
 import '../config/app_config.dart';
@@ -19,6 +20,25 @@ class _StudentListScreenState extends State<StudentListScreen>
   List<Student> students = [];
   bool isLoading = true;
   String searchQuery = '';
+  TextEditingController searchController = TextEditingController();
+  String? sortOption;
+  
+  // Filter options
+  String? selectedFaculty;
+  String? selectedStudyProgram;
+  String? selectedVehicleType;
+  bool showFilters = false;
+  
+  // Available filter values
+  List<String> availableFaculties = [];
+  List<String> availableStudyPrograms = [];
+  List<String> availableVehicleTypes = [];
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -35,12 +55,18 @@ class _StudentListScreenState extends State<StudentListScreen>
     });
 
     try {
+      List<Student> fetchedStudents;
       if (AppConfig.isDevelopment) {
         await Future.delayed(const Duration(milliseconds: 500));
-        students = DemoData.getAllStudents();
+        fetchedStudents = DemoData.getAllStudents();
       } else {
-        students = await FirebaseService.getAllStudents();
+        fetchedStudents = await FirebaseService.getAllStudents();
       }
+
+      // Update available filter options
+      _updateFilterOptions(fetchedStudents);
+
+      students = fetchedStudents;
     } catch (e) {
       Logger.error('Error loading students: $e');
       if (mounted) {
@@ -69,6 +95,55 @@ class _StudentListScreenState extends State<StudentListScreen>
         });
       }
     }
+  }
+
+  void _updateFilterOptions(List<Student> students) {
+    // Use predefined faculty data from FacultyData
+    availableFaculties = FacultyData.getFaculties();
+    
+    // Get all study programs from all faculties
+    availableStudyPrograms = [];
+    for (String faculty in availableFaculties) {
+      availableStudyPrograms.addAll(FacultyData.getAllStudyPrograms(faculty));
+    }
+    availableStudyPrograms = availableStudyPrograms.toSet().toList()..sort();
+    
+    // Keep vehicle types from actual student data
+    availableVehicleTypes = students
+        .map((s) => s.vehicleType)
+        .where((vt) => vt.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+  }
+
+  void _clearAllFilters() {
+    setState(() {
+      searchQuery = '';
+      selectedFaculty = null;
+      selectedStudyProgram = null;
+      selectedVehicleType = null;
+      sortOption = null;
+      searchController.clear();
+    });
+  }
+
+  bool get hasActiveFilters {
+    return searchQuery.isNotEmpty ||
+        selectedFaculty != null ||
+        selectedStudyProgram != null ||
+        selectedVehicleType != null ||
+        sortOption != null;
+  }
+
+  int _getActiveFilterCount() {
+    int count = 0;
+    if (searchQuery.isNotEmpty) count++;
+    if (selectedFaculty != null) count++;
+    if (selectedStudyProgram != null) count++;
+    if (selectedVehicleType != null) count++;
+    if (sortOption != null) count++;
+    return count;
   }
 
   Future<void> _refreshData() async {
@@ -232,106 +307,187 @@ class _StudentListScreenState extends State<StudentListScreen>
   }
 
   List<Student> get filteredStudents {
-    if (searchQuery.isEmpty) return students;
-    return students.where((student) {
+    List<Student> filtered = List.from(students);
+
+    // Apply search filter
+    if (searchQuery.isNotEmpty) {
       final query = searchQuery.toLowerCase();
-      return student.name.toLowerCase().contains(query) ||
-          student.nim.toLowerCase().contains(query) ||
-          student.vehicleNumber.toLowerCase().contains(query) ||
-          student.faculty.toLowerCase().contains(query) ||
-          student.studyProgram.toLowerCase().contains(query);
-    }).toList();
+      filtered = filtered.where((student) {
+        return student.name.toLowerCase().contains(query) ||
+            student.nim.toLowerCase().contains(query) ||
+            student.vehicleNumber.toLowerCase().contains(query) ||
+            student.faculty.toLowerCase().contains(query) ||
+            student.studyProgram.toLowerCase().contains(query);
+      }).toList();
+    }
+
+    // Apply faculty filter
+    if (selectedFaculty != null) {
+      filtered = filtered.where((student) => student.faculty == selectedFaculty).toList();
+    }
+
+    // Apply study program filter
+    if (selectedStudyProgram != null) {
+      filtered = filtered.where((student) => student.studyProgram == selectedStudyProgram).toList();
+    }
+
+    // Apply vehicle type filter
+    if (selectedVehicleType != null) {
+      filtered = filtered.where((student) => student.vehicleType == selectedVehicleType).toList();
+    }
+
+    // Apply sorting
+    if (sortOption != null) {
+      switch (sortOption) {
+        case 'name_asc':
+          filtered.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          break;
+        case 'name_desc':
+          filtered.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+          break;
+        case 'nim_asc':
+          filtered.sort((a, b) => a.nim.compareTo(b.nim));
+          break;
+        case 'nim_desc':
+          filtered.sort((a, b) => b.nim.compareTo(a.nim));
+          break;
+        case 'faculty_asc':
+          filtered.sort((a, b) => a.faculty.toLowerCase().compareTo(b.faculty.toLowerCase()));
+          break;
+        case 'faculty_desc':
+          filtered.sort((a, b) => b.faculty.toLowerCase().compareTo(a.faculty.toLowerCase()));
+          break;
+        case 'scan_time_newest':
+          filtered.sort((a, b) => b.scanTime.compareTo(a.scanTime));
+          break;
+        case 'scan_time_oldest':
+          filtered.sort((a, b) => a.scanTime.compareTo(b.scanTime));
+          break;
+      }
+    }
+
+    return filtered;
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Colors.grey[50],
       body: Column(
         children: [
+          // Compact Modern Header
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                ],
+              ),
               borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
               ),
               boxShadow: [
                 BoxShadow(
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
             child: SafeArea(
               bottom: false,
-              child: Column(
-                children: [
-                  Container(
-                    height: 4,
-                    margin: const EdgeInsets.only(top: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        3,
-                        (index) => Container(
-                          width: 40,
-                          height: 4,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                child: Row(
+                  children: [
+                    // Icon with modern design
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
                         ),
                       ),
+                      child: const Icon(
+                        Icons.people_alt_rounded,
+                        size: 24,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 1,
+                    const SizedBox(width: 16),
+                    
+                    // Title and subtitle
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Data Mahasiswa',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
                             ),
                           ),
-                          child: const Icon(
-                            Icons.people_alt_rounded,
-                            size: 36,
-                            color: Colors.white,
+                          const SizedBox(height: 2),
+                          Text(
+                            'Kelola data mahasiswa dan kendaraan',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.85),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Data Mahasiswa',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Kelola data mahasiswa dan kendaraan',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    
+                    // Statistics badge
+                    if (!isLoading)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.group,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${students.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -341,25 +497,27 @@ class _StudentListScreenState extends State<StudentListScreen>
               onRefresh: _loadStudents,
               color: Theme.of(context).colorScheme.primary,
               child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   children: [
+                    // Modern Search Bar
                     Container(
                       margin: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              color: Colors.black.withOpacity(0.06),
+                              blurRadius: 15,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: TextField(
+                          controller: searchController,
                           decoration: InputDecoration(
-                            hintText:
-                                '🔍 Cari mahasiswa (nama, NIM, plat, fakultas)...',
+                            hintText: 'Cari mahasiswa...',
                             hintStyle: TextStyle(
                               color: Colors.grey[400],
                               fontSize: 15,
@@ -370,39 +528,38 @@ class _StudentListScreenState extends State<StudentListScreen>
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Icon(
                                 Icons.search,
                                 color: Colors.white,
-                                size: 20,
+                                size: 18,
                               ),
                             ),
                             suffixIcon: searchQuery.isNotEmpty
-                                ? Container(
-                                    margin: const EdgeInsets.all(8),
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.clear,
-                                        color: Colors.grey,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          searchQuery = '';
-                                        });
-                                      },
+                                ? IconButton(
+                                    icon: Icon(
+                                      Icons.clear,
+                                      color: Colors.grey[400],
+                                      size: 20,
                                     ),
+                                    onPressed: () {
+                                      setState(() {
+                                        searchQuery = '';
+                                        searchController.clear();
+                                      });
+                                    },
                                   )
                                 : null,
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide.none,
                             ),
                             filled: true,
                             fillColor: Colors.white,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 20,
-                              vertical: 18,
+                              vertical: 16,
                             ),
                           ),
                           onChanged: (value) {
@@ -414,6 +571,434 @@ class _StudentListScreenState extends State<StudentListScreen>
                       ),
                     ),
 
+                    // Modern Filter and Sort Controls
+                    if (!isLoading) ...[
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                        child: Row(
+                          children: [
+                            // Filter Button
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.04),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    setState(() {
+                                      showFilters = !showFilters;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    showFilters ? Icons.filter_list_off : Icons.tune,
+                                    size: 18,
+                                  ),
+                                  label: Text(
+                                    hasActiveFilters 
+                                        ? 'Filter (${_getActiveFilterCount()})'
+                                        : 'Filter',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: hasActiveFilters 
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.white,
+                                    foregroundColor: hasActiveFilters 
+                                        ? Colors.white
+                                        : Colors.grey[700],
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                        color: hasActiveFilters 
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Colors.grey[200]!,
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Sort Button
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.04),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: PopupMenuButton<String>(
+                                  onSelected: (value) {
+                                    setState(() {
+                                      sortOption = value;
+                                    });
+                                  },
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: null,
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.clear, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Hapus Urutan'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuDivider(),
+                                    const PopupMenuItem(
+                                      value: 'name_asc',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.sort_by_alpha, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Nama A-Z'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'name_desc',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.sort_by_alpha, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Nama Z-A'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'nim_asc',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.numbers, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('NIM A-Z'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'nim_desc',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.numbers, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('NIM Z-A'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'faculty_asc',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.school, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Fakultas A-Z'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'faculty_desc',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.school, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Fakultas Z-A'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'scan_time_newest',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.access_time, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Terbaru'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'scan_time_oldest',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.access_time, size: 18),
+                                          SizedBox(width: 8),
+                                          Text('Terlama'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: sortOption != null 
+                                          ? Theme.of(context).colorScheme.primary
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: sortOption != null 
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Colors.grey[200]!,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.sort,
+                                          size: 18,
+                                          color: sortOption != null 
+                                              ? Colors.white
+                                              : Colors.grey[700],
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          sortOption != null ? 'Diurutkan' : 'Urutkan',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                            color: sortOption != null 
+                                                ? Colors.white
+                                                : Colors.grey[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Filter Options (Expandable)
+                      if (showFilters) ...[
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.06),
+                                blurRadius: 15,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.tune,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Filter Data',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  if (hasActiveFilters)
+                                    TextButton.icon(
+                                      onPressed: _clearAllFilters,
+                                      icon: const Icon(Icons.clear_all, size: 16),
+                                      label: const Text('Hapus Semua'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.red[600],
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Faculty Filter
+                              if (availableFaculties.isNotEmpty) ...[
+                                const Text(
+                                  'Fakultas',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey[200]!),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: selectedFaculty,
+                                      hint: const Text('Pilih Fakultas'),
+                                      isExpanded: true,
+                                      items: [
+                                        const DropdownMenuItem<String>(
+                                          value: null,
+                                          child: Text('Semua Fakultas'),
+                                        ),
+                                        ...availableFaculties.map((faculty) =>
+                                            DropdownMenuItem<String>(
+                                              value: faculty,
+                                              child: Text(faculty),
+                                            )),
+                                      ],
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedFaculty = value;
+                                          // Reset study program when faculty changes
+                                          if (selectedStudyProgram != null && selectedFaculty != null) {
+                                            final facultyPrograms = FacultyData.getAllStudyPrograms(selectedFaculty!);
+                                            if (!facultyPrograms.contains(selectedStudyProgram)) {
+                                              selectedStudyProgram = null;
+                                            }
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+
+                              // Study Program Filter
+                              if (availableStudyPrograms.isNotEmpty) ...[
+                                const Text(
+                                  'Program Studi',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey[200]!),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: selectedStudyProgram,
+                                      hint: const Text('Pilih Program Studi'),
+                                      isExpanded: true,
+                                      items: [
+                                        const DropdownMenuItem<String>(
+                                          value: null,
+                                          child: Text('Semua Program Studi'),
+                                        ),
+                                        // Show only programs from selected faculty if faculty is selected
+                                        ...(selectedFaculty != null 
+                                            ? FacultyData.getAllStudyPrograms(selectedFaculty!)
+                                            : availableStudyPrograms)
+                                            .map((program) =>
+                                            DropdownMenuItem<String>(
+                                              value: program,
+                                              child: Text(program),
+                                            )),
+                                      ],
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedStudyProgram = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+
+                              // Vehicle Type Filter
+                              if (availableVehicleTypes.isNotEmpty) ...[
+                                const Text(
+                                  'Jenis Kendaraan',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey[200]!),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: selectedVehicleType,
+                                      hint: const Text('Pilih Jenis Kendaraan'),
+                                      isExpanded: true,
+                                      items: [
+                                        const DropdownMenuItem<String>(
+                                          value: null,
+                                          child: Text('Semua Jenis Kendaraan'),
+                                        ),
+                                        ...availableVehicleTypes.map((type) =>
+                                            DropdownMenuItem<String>(
+                                              value: type,
+                                              child: Text(type),
+                                            )),
+                                      ],
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedVehicleType = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+
+                    // Quick Stats Cards
                     if (!isLoading)
                       Container(
                         margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -421,17 +1006,20 @@ class _StudentListScreenState extends State<StudentListScreen>
                           children: [
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.all(20),
+                                padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(20),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Theme.of(context).colorScheme.primary,
+                                      Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withOpacity(0.3),
-                                      blurRadius: 15,
-                                      offset: const Offset(0, 8),
+                                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
@@ -440,21 +1028,21 @@ class _StudentListScreenState extends State<StudentListScreen>
                                     Icon(
                                       Icons.people_alt_rounded,
                                       color: Colors.white.withOpacity(0.9),
-                                      size: 24,
+                                      size: 20,
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 6),
                                     Text(
                                       '${students.length}',
                                       style: const TextStyle(
-                                        fontSize: 28,
+                                        fontSize: 24,
                                         fontWeight: FontWeight.w800,
                                         color: Colors.white,
                                       ),
                                     ),
                                     const Text(
-                                      'Total Mahasiswa',
+                                      'Total',
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -463,18 +1051,23 @@ class _StudentListScreenState extends State<StudentListScreen>
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.all(20),
+                                padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(20),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.green[600]!,
+                                      Colors.green[500]!,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.green.withOpacity(0.3),
-                                      blurRadius: 15,
-                                      offset: const Offset(0, 8),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
@@ -483,21 +1076,21 @@ class _StudentListScreenState extends State<StudentListScreen>
                                     Icon(
                                       Icons.search_rounded,
                                       color: Colors.white.withOpacity(0.9),
-                                      size: 24,
+                                      size: 20,
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 6),
                                     Text(
                                       '${filteredStudents.length}',
                                       style: const TextStyle(
-                                        fontSize: 28,
+                                        fontSize: 24,
                                         fontWeight: FontWeight.w800,
                                         color: Colors.white,
                                       ),
                                     ),
                                     const Text(
-                                      'Hasil Pencarian',
+                                      'Hasil',
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         color: Colors.white,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -510,6 +1103,7 @@ class _StudentListScreenState extends State<StudentListScreen>
                         ),
                       ),
 
+                    // Student List
                     isLoading
                         ? Container(
                             height: 300,
@@ -523,12 +1117,12 @@ class _StudentListScreenState extends State<StudentListScreen>
                                     ),
                                     strokeWidth: 3,
                                   ),
-                                  const SizedBox(height: 24),
+                                  const SizedBox(height: 20),
                                   Text(
                                     'Memuat data mahasiswa...',
                                     style: TextStyle(
                                       color: Colors.grey[600],
-                                      fontSize: 16,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -544,50 +1138,47 @@ class _StudentListScreenState extends State<StudentListScreen>
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(24),
+                                    padding: const EdgeInsets.all(20),
                                     decoration: BoxDecoration(
                                       color: Colors.grey[100],
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
-                                      searchQuery.isNotEmpty
+                                      hasActiveFilters
                                           ? Icons.search_off
                                           : Icons.people_outline,
-                                      size: 64,
+                                      size: 48,
                                       color: Colors.grey[400],
                                     ),
                                   ),
-                                  const SizedBox(height: 24),
+                                  const SizedBox(height: 20),
                                   Text(
-                                    searchQuery.isNotEmpty
+                                    hasActiveFilters
                                         ? 'Tidak ditemukan mahasiswa'
                                         : 'Belum ada data mahasiswa',
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       color: Colors.grey[600],
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 6),
                                   Text(
-                                    searchQuery.isNotEmpty
-                                        ? 'Coba gunakan kata kunci lain'
+                                    hasActiveFilters
+                                        ? 'Coba ubah filter atau kata kunci pencarian'
                                         : 'Tambahkan mahasiswa baru untuk memulai',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       color: Colors.grey[500],
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  if (searchQuery.isNotEmpty) ...[
+                                  if (hasActiveFilters) ...[
                                     const SizedBox(height: 16),
                                     TextButton.icon(
-                                      onPressed: () {
-                                        setState(() {
-                                          searchQuery = '';
-                                        });
-                                      },
-                                      icon: const Icon(Icons.clear_all),
-                                      label: const Text('Hapus Filter'),
+                                      onPressed: _clearAllFilters,
+                                      icon: const Icon(Icons.clear_all, size: 18),
+                                      label: const Text('Hapus Semua Filter'),
                                     ),
                                   ],
                                 ],
@@ -595,170 +1186,143 @@ class _StudentListScreenState extends State<StudentListScreen>
                             ),
                           )
                         : Column(
-                            children: List.generate(filteredStudents.length, (
-                              index,
-                            ) {
+                            children: List.generate(filteredStudents.length, (index) {
                               final student = filteredStudents[index];
                               return Container(
-                                margin: const EdgeInsets.fromLTRB(
-                                  20,
-                                  0,
-                                  20,
-                                  16,
-                                ),
+                                margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                                 child: InkWell(
                                   onTap: () async {
-                                    final result = await Navigator.of(context)
-                                        .push(
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                StudentDetailScreen(
-                                                  student: student,
-                                                ),
-                                          ),
-                                        );
+                                    final result = await Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => StudentDetailScreen(
+                                          student: student,
+                                        ),
+                                      ),
+                                    );
 
                                     if (mounted) {
                                       setState(() {});
                                     }
                                   },
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Card(
-                                    elevation: 2,
-                                    shadowColor: Colors.black.withOpacity(0.1),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                      side: BorderSide(
-                                        color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: Colors.grey[100]!,
                                         width: 1,
                                       ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.04),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        color: Colors.white,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Row(
-                                          children: [
-                                            Hero(
-                                              tag: 'avatar_${student.nim}',
-                                              child: Container(
-                                                width: 48,
-                                                height: 48,
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                  borderRadius:
-                                                      BorderRadius.circular(16),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .primary
-                                                          .withOpacity(0.3),
-                                                      blurRadius: 8,
-                                                      offset: const Offset(
-                                                        0,
-                                                        2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Row(
+                                        children: [
+                                          // Avatar
+                                          Hero(
+                                            tag: 'avatar_${student.nim}',
+                                            child: Container(
+                                              width: 44,
+                                              height: 44,
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Theme.of(context).colorScheme.primary,
+                                                    Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                                  ],
+                                                ),
+                                                borderRadius: BorderRadius.circular(12),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                                    blurRadius: 6,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  student.name[0].toUpperCase(),
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 14),
+
+                                          // Student Info
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  student.name,
+                                                  style: const TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 3,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                                    borderRadius: BorderRadius.circular(6),
+                                                  ),
+                                                  child: Text(
+                                                    student.nim,
+                                                    style: TextStyle(
+                                                      color: Theme.of(context).colorScheme.primary,
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.touch_app,
+                                                      size: 12,
+                                                      color: Colors.grey[400],
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'Tap untuk detail',
+                                                      style: TextStyle(
+                                                        color: Colors.grey[400],
+                                                        fontSize: 10,
+                                                        fontStyle: FontStyle.italic,
                                                       ),
                                                     ),
                                                   ],
                                                 ),
-                                                child: Center(
-                                                  child: Text(
-                                                    student.name[0]
-                                                        .toUpperCase(),
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      fontSize: 18,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
+                                              ],
                                             ),
-                                            const SizedBox(width: 16),
+                                          ),
 
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    student.name,
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color: Colors.black87,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 6),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 4,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .primary
-                                                          .withOpacity(0.1),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            8,
-                                                          ),
-                                                    ),
-                                                    child: Text(
-                                                      student.nim,
-                                                      style: TextStyle(
-                                                        color: Theme.of(
-                                                          context,
-                                                        ).colorScheme.primary,
-                                                        fontSize: 11,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-
-                                                  Row(
-                                                    children: [
-                                                      Icon(
-                                                        Icons.touch_app,
-                                                        size: 14,
-                                                        color: Colors.grey[500],
-                                                      ),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                        'Tap untuk detail lengkap',
-                                                        style: TextStyle(
-                                                          color:
-                                                              Colors.grey[500],
-                                                          fontSize: 11,
-                                                          fontStyle:
-                                                              FontStyle.italic,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-
-                                            Icon(
-                                              Icons.arrow_forward_ios,
-                                              color: Colors.grey[400],
-                                              size: 16,
-                                            ),
-                                          ],
-                                        ),
+                                          // Arrow
+                                          Icon(
+                                            Icons.arrow_forward_ios,
+                                            color: Colors.grey[300],
+                                            size: 14,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -786,8 +1350,11 @@ class _StudentListScreenState extends State<StudentListScreen>
             await _loadStudents();
           }
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah Mahasiswa'),
+        icon: const Icon(Icons.add, size: 20),
+        label: const Text(
+          'Tambah Mahasiswa',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

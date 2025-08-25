@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'screens/main_navigation_screen.dart';
+
 import 'screens/splash_screen.dart';
 
 void main() async {
@@ -40,10 +40,10 @@ class MyApp extends StatelessWidget {
           onSecondary: Colors.white,
           error: Color(0xFFD32F2F),
           onError: Colors.white,
-          background: Colors.white,
-          onBackground: Color(0xFF212121),
           surface: Colors.white,
           onSurface: Color(0xFF212121),
+          background: Colors.white,
+          onBackground: Color(0xFF212121),
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF1565C0),

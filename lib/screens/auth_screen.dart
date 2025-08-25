@@ -195,7 +195,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'STNK Check UAD',
+                      'ID Recognizer & Quickscan',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,
@@ -514,14 +514,14 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   InputBorder _border() => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      );
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide(color: Colors.grey.shade300),
+  );
 
   InputBorder _focusedBorder(Color color) => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: color, width: 2),
-      );
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide(color: color, width: 2),
+  );
 
   Widget _buildPrefixIcon(IconData icon) {
     final color = Theme.of(context).colorScheme.primary;
