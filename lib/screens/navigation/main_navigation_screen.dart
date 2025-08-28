@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'scan_screen.dart';
-import 'ocr_screen.dart';
-import 'student_list_screen.dart';
-import 'scan_history_screen.dart';
-import 'profile_screen.dart';
+import '../scan/scan_screen.dart';
+import '../scan/ocr_screen.dart';
+import '../student/student_list_screen.dart';
+import '../scan/scan_history_screen.dart';
+import '../profile/profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -103,7 +103,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     super.build(context);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

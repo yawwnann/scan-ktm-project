@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../services/ocr_service.dart';
-import '../models/student.dart';
+import '../../services/ocr_service.dart';
+import '../../models/student.dart';
 import 'result_screen.dart';
-import 'add_edit_student_screen.dart';
+import '../student/add_edit_student_screen.dart';
 
 class OCRScreen extends StatefulWidget {
   const OCRScreen({super.key});
@@ -166,8 +166,7 @@ class _OCRScreenState extends State<OCRScreen> {
                         _buildInfoRow('NIM', result.ocrResult!.nim!),
                       if (result.ocrResult!.name != null)
                         _buildInfoRow('Nama Lengkap', result.ocrResult!.name!),
-                      if (result.ocrResult!.faculty != null)
-                        _buildInfoRow('Fakultas', result.ocrResult!.faculty!),
+                      _buildInfoRow('Fakultas', result.ocrResult!.faculty ?? 'fakultas'),
                       if (result.ocrResult!.studyProgram != null)
                         _buildInfoRow('Program Studi', result.ocrResult!.studyProgram!),
                       if (result.ocrResult!.vehicleNumber != null)
@@ -177,6 +176,35 @@ class _OCRScreenState extends State<OCRScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.auto_awesome,
+                      color: Colors.green[600],
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Data akan diisi otomatis dari hasil OCR. Anda hanya perlu melengkapi nomor plat kendaraan.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.green[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               const Text(
                 'Apakah Anda ingin menambahkan data mahasiswa ini ke sistem?',
                 style: TextStyle(
@@ -207,6 +235,7 @@ class _OCRScreenState extends State<OCRScreen> {
           builder: (context) => AddEditStudentScreen(
             initialBarcode: result.ocrResult!.nim,
             scanMethod: 'ocr',
+            ocrResult: result.ocrResult, // Kirim data OCR lengkap
           ),
         ),
       );
@@ -311,8 +340,7 @@ class _OCRScreenState extends State<OCRScreen> {
                             _buildInfoRow('NIM', result.ocrResult!.nim!),
                           if (result.ocrResult!.name != null)
                             _buildInfoRow('Nama Lengkap', result.ocrResult!.name!),
-                          if (result.ocrResult!.faculty != null)
-                            _buildInfoRow('Fakultas', result.ocrResult!.faculty!),
+                          _buildInfoRow('Fakultas', result.ocrResult!.faculty ?? 'fakultas'),
                           if (result.ocrResult!.studyProgram != null)
                             _buildInfoRow('Program Studi', result.ocrResult!.studyProgram!),
                           if (result.ocrResult!.vehicleNumber != null)
@@ -427,10 +455,10 @@ class _OCRScreenState extends State<OCRScreen> {
               ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.grey[600],
               ),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -505,10 +533,10 @@ class _OCRScreenState extends State<OCRScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.grey[600],
               ),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -582,25 +610,36 @@ class _OCRScreenState extends State<OCRScreen> {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
-                            'OCR Scanner KTM',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.6,
+                            ),
+                            child: Text(
+                              'Pemindaian KTM',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            _isProcessing
-                                ? 'Memproses gambar...'
-                                : 'Scan KTM untuk ekstrak data',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.85),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.6,
+                            ),
+                            child: Text(
+                              'Pindai KTM untuk verifikasi data',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ),
                         ],

@@ -1,7 +1,7 @@
 import '../models/student.dart';
 import '../config/app_config.dart';
 import '../data/demo_data.dart';
-import '../utils/logger.dart';
+import '../utils/logging/logger.dart';
 import '../services/firebase_service.dart';
 
 class StudentService {

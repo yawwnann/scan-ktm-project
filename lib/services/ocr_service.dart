@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/student.dart';
-import '../utils/logger.dart';
+import '../utils/logging/logger.dart';
 import 'student_service.dart';
 
 class OCRService {
@@ -105,7 +105,6 @@ class OCRService {
       'kesehatan',
       'masyarakat',
       'kedokteran',
-      'teknik',
       'pertanian',
       'peternakan',
       'perikanan',
@@ -120,49 +119,20 @@ class OCRService {
       'ushuluddin',
     ];
 
-    // Keywords untuk program studi (lebih komprehensif)
+    // Keywords untuk program studi berdasarkan data fakultas UAD
     final prodiKeywords = [
       'program studi',
       'prodi',
       'jurusan',
       'program',
-      'pendidikan',
-      'teknik',
-      'manajemen',
-      'akuntansi',
-      'informatika',
-      'sistem informasi',
-      'biologi',
-      'fisika',
-      'matematika',
-      'kimia',
-      'bahasa',
-      'sastra',
-      'sejarah',
-      'ekonomi',
-      'hukum',
-      'psikologi',
-      'farmasi',
-      'kedokteran',
-      'keperawatan',
-      'kebidanan',
-      'gizi',
-      'kesehatan',
-      'arsitektur',
-      'sipil',
-      'elektro',
-      'mesin',
-      'industri',
-      'komputer',
-      'komunikasi',
-      'jurnalistik',
-      'hubungan',
-      'internasional',
-      'administrasi',
-      'bisnis',
-      'keuangan',
-      'perbankan',
-      'pemasaran',
+      // Program studi dari FacultyData
+      'bimbingan', 'konseling', 'pendidikan', 'bahasa', 'sastra', 'indonesia', 'inggris',
+      'biologi', 'fisika', 'guru', 'paud', 'sekolah', 'dasar', 'matematika', 'pancasila',
+      'kewarganegaraan', 'vokasional', 'teknik', 'elektronika', 'otomotif', 'manajemen',
+      'akuntansi', 'ekonomi', 'pembangunan', 'bisnis', 'makanan', 'psikologi', 'sistem',
+      'informasi', 'informatika', 'industri', 'kimia', 'elektro', 'teknologi', 'pangan',
+      'farmasi', 'hukum', 'komunikasi', 'arab', 'hadis', 'agama', 'islam', 'perbankan',
+      'syariah', 'kesehatan', 'masyarakat', 'gizi', 'kedokteran'
     ];
 
     // Kata kunci yang harus dihindari untuk nama
@@ -202,6 +172,9 @@ class OCRService {
       'dengan',
     ];
 
+    // Set untuk menyimpan indeks baris yang sudah diidentifikasi sebagai fakultas
+    Set<int> facultyLineIndices = {};
+
     // Ekstrak NIM terlebih dahulu (prioritas utama)
     for (final line in lines) {
       if (nim == null) {
@@ -213,10 +186,81 @@ class OCRService {
       }
     }
 
-    // Ekstrak informasi dengan pendekatan posisional dan kontekstual
+    // FASE 1: Identifikasi fakultas terlebih dahulu dengan prioritas tinggi untuk "Fakultas ..."
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].toLowerCase();
       final originalLine = lines[i];
+
+      if (faculty == null) {
+        // Pattern untuk mendeteksi baris yang diawali dengan "Fakultas" (case-insensitive)
+        final facultyPattern = RegExp(r'^fakultas\s+(.+)', caseSensitive: false);
+        final facultyMatch = facultyPattern.firstMatch(line);
+        
+        if (facultyMatch != null) {
+          // Ambil seluruh baris asli yang mengandung "Fakultas ..."
+          faculty = originalLine;
+          facultyLineIndices.add(i);
+          break; // Prioritas tertinggi, langsung break
+        } else if (line.trim().toLowerCase() == 'fakultas') {
+          // Jika hanya kata "Fakultas" saja, cek baris berikutnya
+          if (i + 1 < lines.length) {
+            final nextLine = lines[i + 1];
+            final nextLineLower = nextLine.toLowerCase();
+            
+            // Pastikan baris berikutnya bukan NIM, nama, atau kata kunci lain
+            if (!nimPattern.hasMatch(nextLine) && 
+                !platePattern.hasMatch(nextLine.toUpperCase()) &&
+                nextLine.length > 3 && nextLine.length < 80 &&
+                !excludeWords.any((word) => nextLineLower.contains(word))) {
+              
+              // Gabungkan "Fakultas" dengan baris berikutnya
+              faculty = 'Fakultas $nextLine';
+              facultyLineIndices.add(i);     // Baris "Fakultas"
+              facultyLineIndices.add(i + 1); // Baris nama fakultas
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // FASE 2: Jika belum menemukan fakultas dengan pattern "Fakultas ...", cari dengan fallback
+    if (faculty == null) {
+      for (int i = 0; i < lines.length; i++) {
+        final line = lines[i].toLowerCase();
+        final originalLine = lines[i];
+
+        // Fallback: cek apakah baris mengandung kata kunci fakultas
+        bool containsFacultyKeyword = facultyKeywords.any((keyword) => line.contains(keyword));
+        
+        if (containsFacultyKeyword) {
+          faculty = originalLine;
+          facultyLineIndices.add(i);
+          break;
+        } else {
+          // Cek baris yang mungkin fakultas berdasarkan pola umum
+          if (originalLine.length > 10 && originalLine.length < 80) {
+            // Cek apakah mengandung kata-kata yang umum di nama fakultas
+            final facultyIndicators = ['fakultas', 'fak', 'ilmu', 'ekonomi', 'hukum', 'kedokteran', 'pertanian', 'sastra', 'sosial', 'agama', 'keguruan', 'pendidikan'];
+            if (facultyIndicators.any((indicator) => line.contains(indicator))) {
+              faculty = originalLine;
+              facultyLineIndices.add(i);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // FASE 3: Ekstrak informasi lainnya dengan menghindari baris fakultas
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].toLowerCase();
+      final originalLine = lines[i];
+
+      // Skip baris yang sudah diidentifikasi sebagai fakultas
+      if (facultyLineIndices.contains(i)) {
+        continue;
+      }
 
       // Cari nomor plat kendaraan
       if (vehicleNumber == null) {
@@ -226,26 +270,7 @@ class OCRService {
         }
       }
 
-      // Cari fakultas dengan pendekatan yang lebih fleksibel
-      if (faculty == null) {
-        // Cek apakah baris mengandung kata kunci fakultas
-        bool containsFacultyKeyword = facultyKeywords.any((keyword) => line.contains(keyword));
-        
-        if (containsFacultyKeyword) {
-          faculty = originalLine;
-        } else {
-          // Cek baris yang mungkin fakultas berdasarkan pola umum
-          if (originalLine.length > 10 && originalLine.length < 80) {
-            // Cek apakah mengandung kata-kata yang umum di nama fakultas
-            final facultyIndicators = ['fakultas', 'fak', 'ilmu', 'teknik', 'ekonomi', 'hukum', 'kedokteran', 'pertanian', 'sastra', 'sosial', 'agama', 'keguruan', 'pendidikan'];
-            if (facultyIndicators.any((indicator) => line.contains(indicator))) {
-              faculty = originalLine;
-            }
-          }
-        }
-      }
-
-      // Cari program studi dengan pendekatan yang lebih fleksibel
+      // Cari program studi (hanya jika bukan baris fakultas)
       if (studyProgram == null) {
         // Cek apakah baris mengandung kata kunci program studi
         bool containsProdiKeyword = prodiKeywords.any((keyword) => line.contains(keyword));
@@ -254,8 +279,38 @@ class OCRService {
           studyProgram = originalLine;
         } else {
           // Cek baris setelah fakultas yang mungkin program studi
-          if (faculty != null && i > 0) {
-            // Jika baris sebelumnya adalah fakultas, baris ini mungkin program studi
+          if (faculty != null) {
+            // Cari baris yang mungkin program studi setelah fakultas ditemukan
+            for (int facultyIndex in facultyLineIndices) {
+              if (i > facultyIndex && i <= facultyIndex + 3) {
+                // Baris ini berada 1-3 baris setelah fakultas
+                if (originalLine.length > 3 && originalLine.length < 60 && 
+                    !nimPattern.hasMatch(originalLine) &&
+                    !platePattern.hasMatch(originalLine.toUpperCase()) &&
+                    !excludeWords.any((word) => line.contains(word))) {
+                  
+                  // Cek apakah baris ini mengandung kata-kata yang umum untuk program studi
+                  final prodiIndicators = [
+                    'teknik', 'kimia', 'industri', 'elektro', 'informatika', 'komputer',
+                    'manajemen', 'akuntansi', 'ekonomi', 'hukum', 'farmasi', 'kedokteran',
+                    'psikologi', 'biologi', 'fisika', 'matematika', 'bahasa', 'sastra',
+                    'komunikasi', 'pendidikan', 'guru', 'paud', 'dasar', 'inggris',
+                    'indonesia', 'arab', 'konseling', 'bimbingan', 'pancasila', 'agama',
+                    'islam', 'kesehatan', 'masyarakat', 'gizi', 'sistem', 'informasi',
+                    'teknologi', 'pangan', 'vokasional', 'otomotif', 'elektronika'
+                  ];
+                  
+                  if (prodiIndicators.any((indicator) => line.contains(indicator))) {
+                    studyProgram = originalLine;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          
+          // Jika masih belum ditemukan, cek dengan logika lama
+          if (studyProgram == null && faculty != null && i > 0) {
             final prevLine = lines[i-1].toLowerCase();
             if (facultyKeywords.any((keyword) => prevLine.contains(keyword))) {
               if (originalLine.length > 5 && originalLine.length < 60 && 
@@ -283,31 +338,23 @@ class OCRService {
           // Pastikan bukan NIM atau nomor plat
           bool isNimOrPlate = nimPattern.hasMatch(originalLine) || 
                              platePattern.hasMatch(originalLine.toUpperCase());
-          
-          // Cek apakah baris ini kemungkinan nama berdasarkan posisi
           bool likelyName = false;
-          
-          // Nama biasanya muncul setelah NIM atau di awal dokumen
           if (nim != null) {
-            // Cari baris setelah NIM ditemukan
             for (int j = 0; j < lines.length; j++) {
               if (lines[j].contains(nim)) {
-                if (i > j && i <= j + 3) { // Nama biasanya 1-3 baris setelah NIM
+                if (i > j && i <= j + 3) { 
                   likelyName = true;
                   break;
                 }
               }
             }
           } else if (i < 5) {
-            // Jika NIM belum ditemukan, nama mungkin di 5 baris pertama
             likelyName = true;
           }
           
-          // Cek apakah mengandung pola nama yang umum (minimal 2 kata)
+  
           final words = originalLine.split(' ').where((w) => w.isNotEmpty).toList();
           bool hasMultipleWords = words.length >= 2;
-          
-          // Cek apakah kata-kata terlihat seperti nama (huruf kapital di awal)
           bool looksLikeName = words.every((word) => 
             word.isNotEmpty && 
             word[0].toUpperCase() == word[0] &&
@@ -322,18 +369,15 @@ class OCRService {
       }
     }
 
-    // Post-processing: bersihkan hasil ekstraksi
+    // Post-processing
     if (name != null) {
-      // Hapus karakter yang tidak perlu di awal/akhir
       name = name.replaceAll(RegExp(r'^[^\w]+|[^\w]+$'), '').trim();
-      // Pastikan nama tidak terlalu pendek atau panjang
       if (name.length < 3 || name.length > 50) {
         name = null;
       }
     }
 
     if (faculty != null) {
-      // Bersihkan fakultas dari karakter yang tidak perlu
       faculty = faculty.replaceAll(RegExp(r'^[^\w\s]+|[^\w\s]+$'), '').trim();
       if (faculty.length < 5) {
         faculty = null;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/student.dart';
-import '../services/student_service.dart';
-import 'student_detail_screen.dart';
+import '../../models/student.dart';
+import '../../services/student_service.dart';
+import '../student/student_detail_screen.dart';
 
 class ScanHistoryScreen extends StatefulWidget {
   const ScanHistoryScreen({super.key});
@@ -40,7 +40,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
     try {
       // Use the new scan history service
       final history = await StudentService.getScanHistory();
-      
+
       setState(() {
         scanHistory = history;
       });
@@ -78,7 +78,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
     if (searchQuery.isEmpty) {
       return scanHistory;
     }
-    
+
     final query = searchQuery.toLowerCase();
     return scanHistory.where((student) {
       return student.name.toLowerCase().contains(query) ||
@@ -92,7 +92,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
   String _formatScanTime(DateTime scanTime) {
     final now = DateTime.now();
     final difference = now.difference(scanTime);
-    
+
     if (difference.inMinutes < 1) {
       return 'Baru saja';
     } else if (difference.inMinutes < 60) {
@@ -108,28 +108,48 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
-    
+
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
   String _formatDateTime(DateTime dateTime) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
-    
+
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
-    
+
     return '${dateTime.day} ${months[dateTime.month - 1]} ${dateTime.year}, $hour:$minute';
   }
 
   Map<String, List<Student>> _groupByDate(List<Student> students) {
     final Map<String, List<Student>> grouped = {};
-    
+
     for (final student in students) {
       final dateKey = _formatDate(student.scanTime);
       if (!grouped.containsKey(dateKey)) {
@@ -137,21 +157,31 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
       }
       grouped[dateKey]!.add(student);
     }
-    
+
     return grouped;
   }
 
   DateTime _parseDate(String dateString) {
     final months = {
-      'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'Mei': 5, 'Jun': 6,
-      'Jul': 7, 'Agu': 8, 'Sep': 9, 'Okt': 10, 'Nov': 11, 'Des': 12
+      'Jan': 1,
+      'Feb': 2,
+      'Mar': 3,
+      'Apr': 4,
+      'Mei': 5,
+      'Jun': 6,
+      'Jul': 7,
+      'Agu': 8,
+      'Sep': 9,
+      'Okt': 10,
+      'Nov': 11,
+      'Des': 12,
     };
-    
+
     final parts = dateString.split(' ');
     final day = int.parse(parts[0]);
     final month = months[parts[1]]!;
     final year = int.parse(parts[2]);
-    
+
     return DateTime(year, month, day);
   }
 
@@ -209,7 +239,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                       ),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // Title and subtitle
                     Expanded(
                       child: Column(
@@ -226,7 +256,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            isLoading 
+                            isLoading
                                 ? 'Memuat data...'
                                 : 'Riwayat scanning KTM mahasiswa',
                             style: TextStyle(
@@ -238,7 +268,21 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                         ],
                       ),
                     ),
-                    
+
+                    // Refresh button
+                    IconButton(
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      onPressed: isLoading ? null : _loadScanHistory,
+                      tooltip: 'Refresh',
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
+                    ),
+                    const SizedBox(width: 8),
+
                     // Statistics badge
                     if (!isLoading)
                       Container(
@@ -374,13 +418,17 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                   gradient: LinearGradient(
                                     colors: [
                                       Theme.of(context).colorScheme.primary,
-                                      Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.8),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.3),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -469,7 +517,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
 
                     // Content
                     if (isLoading)
-                      Container(
+                      SizedBox(
                         height: 300,
                         child: Center(
                           child: Column(
@@ -495,7 +543,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                         ),
                       )
                     else if (scanHistory.isEmpty)
-                      Container(
+                      SizedBox(
                         height: 300,
                         child: Center(
                           child: Column(
@@ -536,7 +584,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                         ),
                       )
                     else if (filteredHistory.isEmpty)
-                      Container(
+                      SizedBox(
                         height: 300,
                         child: Center(
                           child: Column(
@@ -585,7 +633,9 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                             ..sort((a, b) {
                               final dateA = _parseDate(a);
                               final dateB = _parseDate(b);
-                              return dateB.compareTo(dateA); // Most recent first
+                              return dateB.compareTo(
+                                dateA,
+                              ); // Most recent first
                             });
 
                           return Column(
@@ -596,7 +646,12 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                 children: [
                                   // Date Header
                                   Container(
-                                    margin: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                                    margin: const EdgeInsets.fromLTRB(
+                                      20,
+                                      16,
+                                      20,
+                                      12,
+                                    ),
                                     child: Row(
                                       children: [
                                         Container(
@@ -605,10 +660,18 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                             vertical: 6,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(20),
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                                .withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                             border: Border.all(
-                                              color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withOpacity(0.2),
                                             ),
                                           ),
                                           child: Row(
@@ -617,7 +680,9 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                               Icon(
                                                 Icons.calendar_today,
                                                 size: 14,
-                                                color: Theme.of(context).colorScheme.primary,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
                                               ),
                                               const SizedBox(width: 6),
                                               Text(
@@ -625,7 +690,9 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.w600,
-                                                  color: Theme.of(context).colorScheme.primary,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
                                                 ),
                                               ),
                                             ],
@@ -639,7 +706,9 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                           ),
                                           decoration: BoxDecoration(
                                             color: Colors.grey[200],
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                           ),
                                           child: Text(
                                             '${studentsForDate.length}',
@@ -653,18 +722,24 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                       ],
                                     ),
                                   ),
-                                  
+
                                   // Students for this date
                                   ...studentsForDate.map((student) {
                                     return Container(
-                                      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                                      margin: const EdgeInsets.fromLTRB(
+                                        20,
+                                        0,
+                                        20,
+                                        12,
+                                      ),
                                       child: InkWell(
                                         onTap: () {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
-                                              builder: (context) => StudentDetailScreen(
-                                                student: student,
-                                              ),
+                                              builder: (context) =>
+                                                  StudentDetailScreen(
+                                                    student: student,
+                                                  ),
                                             ),
                                           );
                                         },
@@ -672,14 +747,18 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                         child: Container(
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
                                             border: Border.all(
                                               color: Colors.grey[100]!,
                                               width: 1,
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black.withOpacity(0.04),
+                                                color: Colors.black.withOpacity(
+                                                  0.04,
+                                                ),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 2),
                                               ),
@@ -696,25 +775,41 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                                   decoration: BoxDecoration(
                                                     gradient: LinearGradient(
                                                       colors: [
-                                                        Theme.of(context).colorScheme.primary,
-                                                        Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                                        Theme.of(
+                                                          context,
+                                                        ).colorScheme.primary,
+                                                        Theme.of(context)
+                                                            .colorScheme
+                                                            .primary
+                                                            .withOpacity(0.8),
                                                       ],
                                                     ),
-                                                    borderRadius: BorderRadius.circular(12),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
                                                     boxShadow: [
                                                       BoxShadow(
-                                                        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .primary
+                                                            .withOpacity(0.3),
                                                         blurRadius: 6,
-                                                        offset: const Offset(0, 2),
+                                                        offset: const Offset(
+                                                          0,
+                                                          2,
+                                                        ),
                                                       ),
                                                     ],
                                                   ),
                                                   child: Center(
                                                     child: Text(
-                                                      student.name[0].toUpperCase(),
+                                                      student.name[0]
+                                                          .toUpperCase(),
                                                       style: const TextStyle(
                                                         color: Colors.white,
-                                                        fontWeight: FontWeight.w700,
+                                                        fontWeight:
+                                                            FontWeight.w700,
                                                         fontSize: 16,
                                                       ),
                                                     ),
@@ -725,13 +820,16 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                                 // Student Info
                                                 Expanded(
                                                   child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Text(
                                                         student.name,
                                                         style: const TextStyle(
                                                           fontSize: 15,
-                                                          fontWeight: FontWeight.w700,
+                                                          fontWeight:
+                                                              FontWeight.w700,
                                                           color: Colors.black87,
                                                         ),
                                                       ),
@@ -739,39 +837,67 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                                       Row(
                                                         children: [
                                                           Container(
-                                                            padding: const EdgeInsets.symmetric(
-                                                              horizontal: 8,
-                                                              vertical: 3,
-                                                            ),
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 8,
+                                                                  vertical: 3,
+                                                                ),
                                                             decoration: BoxDecoration(
-                                                              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                                                              borderRadius: BorderRadius.circular(6),
+                                                              color:
+                                                                  Theme.of(
+                                                                        context,
+                                                                      )
+                                                                      .colorScheme
+                                                                      .primary
+                                                                      .withOpacity(
+                                                                        0.1,
+                                                                      ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    6,
+                                                                  ),
                                                             ),
                                                             child: Text(
                                                               student.nim,
                                                               style: TextStyle(
-                                                                color: Theme.of(context).colorScheme.primary,
+                                                                color: Theme.of(
+                                                                  context,
+                                                                ).colorScheme.primary,
                                                                 fontSize: 10,
-                                                                fontWeight: FontWeight.w600,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
                                                               ),
                                                             ),
                                                           ),
-                                                          const SizedBox(width: 8),
+                                                          const SizedBox(
+                                                            width: 8,
+                                                          ),
                                                           Container(
-                                                            padding: const EdgeInsets.symmetric(
-                                                              horizontal: 8,
-                                                              vertical: 3,
-                                                            ),
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.green[50],
-                                                              borderRadius: BorderRadius.circular(6),
-                                                            ),
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 8,
+                                                                  vertical: 3,
+                                                                ),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                                  color: Colors
+                                                                      .green[50],
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        6,
+                                                                      ),
+                                                                ),
                                                             child: Text(
-                                                              student.vehicleNumber,
+                                                              student
+                                                                  .vehicleNumber,
                                                               style: TextStyle(
-                                                                color: Colors.green[700],
+                                                                color: Colors
+                                                                    .green[700],
                                                                 fontSize: 10,
-                                                                fontWeight: FontWeight.w600,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
                                                               ),
                                                             ),
                                                           ),
@@ -783,15 +909,23 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                                           Icon(
                                                             Icons.access_time,
                                                             size: 12,
-                                                            color: Colors.grey[400],
+                                                            color: Colors
+                                                                .grey[400],
                                                           ),
-                                                          const SizedBox(width: 4),
+                                                          const SizedBox(
+                                                            width: 4,
+                                                          ),
                                                           Text(
-                                                            _formatScanTime(student.scanTime),
+                                                            _formatScanTime(
+                                                              student.scanTime,
+                                                            ),
                                                             style: TextStyle(
-                                                              color: Colors.grey[500],
+                                                              color: Colors
+                                                                  .grey[500],
                                                               fontSize: 11,
-                                                              fontWeight: FontWeight.w500,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
                                                             ),
                                                           ),
                                                         ],
@@ -804,14 +938,21 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                                 Column(
                                                   children: [
                                                     Container(
-                                                      padding: const EdgeInsets.all(6),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            6,
+                                                          ),
                                                       decoration: BoxDecoration(
                                                         color: Colors.green[50],
-                                                        borderRadius: BorderRadius.circular(8),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
                                                       ),
                                                       child: Icon(
                                                         Icons.check_circle,
-                                                        color: Colors.green[600],
+                                                        color:
+                                                            Colors.green[600],
                                                         size: 16,
                                                       ),
                                                     ),
@@ -829,7 +970,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen>
                                         ),
                                       ),
                                     );
-                                  }).toList(),
+                                  }),
                                 ],
                               );
                             }).toList(),

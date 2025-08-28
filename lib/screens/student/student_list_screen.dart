@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/student.dart';
-import '../models/faculty_data.dart';
-import '../services/firebase_service.dart';
-import '../utils/logger.dart';
-import '../config/app_config.dart';
-import '../data/demo_data.dart';
+import 'package:flutter/services.dart';
+import '../../models/student.dart';
+import '../../models/faculty_data.dart';
+import '../../services/firebase_service.dart';
+import '../../utils/logging/logger.dart';
+import '../../config/app_config.dart';
+import '../../data/demo_data.dart';
 import 'add_edit_student_screen.dart';
 import 'student_detail_screen.dart';
 
@@ -1105,7 +1106,7 @@ class _StudentListScreenState extends State<StudentListScreen>
 
                     // Student List
                     isLoading
-                        ? Container(
+                        ? SizedBox(
                             height: 300,
                             child: Center(
                               child: Column(
@@ -1131,7 +1132,7 @@ class _StudentListScreenState extends State<StudentListScreen>
                             ),
                           )
                         : filteredStudents.isEmpty
-                        ? Container(
+                        ? SizedBox(
                             height: 300,
                             child: Center(
                               child: Column(
@@ -1316,11 +1317,29 @@ class _StudentListScreenState extends State<StudentListScreen>
                                             ),
                                           ),
 
-                                          // Arrow
-                                          Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: Colors.grey[300],
-                                            size: 14,
+                                          // Action Buttons
+                                          Row(
+                                            children: [
+                                              // Delete Button
+                                              IconButton(
+                                                onPressed: () => _deleteStudent(student),
+                                                icon: Icon(
+                                                  Icons.delete_outline,
+                                                  color: Colors.red[400],
+                                                  size: 20,
+                                                ),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                                tooltip: 'Hapus Mahasiswa',
+                                              ),
+                                              const SizedBox(width: 8),
+                                              // View Details Arrow
+                                              Icon(
+                                                Icons.arrow_forward_ios,
+                                                color: Colors.grey[300],
+                                                size: 14,
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),

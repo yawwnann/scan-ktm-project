@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'main_navigation_screen.dart';
+import 'package:flutter/services.dart';
+import '../navigation/main_navigation_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -166,6 +167,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
     return Scaffold(
       backgroundColor: color,
@@ -225,6 +227,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
                   ),
                 ),
                 child: Padding(
@@ -348,8 +352,9 @@ class _AuthScreenState extends State<AuthScreen> {
                           validator: (v) {
                             final value = (v ?? '').trim();
                             if (value.isEmpty) return 'Email wajib diisi';
-                            if (!value.contains('@') || !value.contains('.'))
+                            if (!value.contains('@') || !value.contains('.')) {
                               return 'Format email tidak valid';
+                            }
                             return null;
                           },
                         ),
@@ -384,8 +389,9 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                           ),
                           validator: (v) {
-                            if (v == null || v.length < 6)
+                            if (v == null || v.length < 6) {
                               return 'Minimal 6 karakter';
+                            }
                             return null;
                           },
                         ),
@@ -419,10 +425,12 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Konfirmasi password wajib diisi';
-                              if (v != _passwordController.text)
+                              }
+                              if (v != _passwordController.text) {
                                 return 'Password tidak sama';
+                              }
                               return null;
                             },
                           ),

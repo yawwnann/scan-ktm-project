@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import '../models/student.dart';
-import '../services/student_service.dart';
-import '../config/platform_config.dart';
+import '../../models/student.dart';
+import '../../services/student_service.dart';
+import '../../config/platform_config.dart';
 import 'result_screen.dart';
-import 'add_edit_student_screen.dart';
+import '../student/add_edit_student_screen.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -33,16 +34,19 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       useNewCameraSelector: true,
     );
 
-    cameraController.start().then((_) {
-      if (mounted) {
-        setState(() {
-          isCameraInitialized = true;
+    cameraController
+        .start()
+        .then((_) {
+          if (mounted) {
+            setState(() {
+              isCameraInitialized = true;
+            });
+          }
+        })
+        .catchError((error) {
+          // ignore: avoid_print
+          print('Camera initialization error: $error');
         });
-      }
-    }).catchError((error) {
-      // ignore: avoid_print
-      print('Camera initialization error: $error');
-    });
   }
 
   @override
@@ -176,7 +180,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
               Container(
@@ -204,10 +210,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
               ),
             ],
           ),
-          content: Text(
-            message,
-            style: const TextStyle(fontSize: 14),
-          ),
+          content: Text(message, style: const TextStyle(fontSize: 14)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop('cancel'),
@@ -240,7 +243,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
               Container(
@@ -268,17 +273,12 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
               ),
             ],
           ),
-          content: Text(
-            message,
-            style: const TextStyle(fontSize: 14),
-          ),
+          content: Text(message, style: const TextStyle(fontSize: 14)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
               child: const Text('OK'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey[600],
-              ),
             ),
           ],
         );
@@ -348,8 +348,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                           margin: const EdgeInsets.all(12),
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary
-                                .withOpacity(0.1),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -503,7 +504,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.2),
                     width: 1,
                   ),
                 ),
@@ -566,7 +569,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
               Container(
@@ -584,10 +589,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
               const SizedBox(width: 12),
               const Text(
                 'Data Demo Tersedia',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -600,10 +602,8 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
               child: const Text('OK'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey[600],
-              ),
             ),
           ],
         );
@@ -614,6 +614,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     // Show platform warning if needed
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     PlatformConfig.showPlatformWarning();
 
     return Scaffold(
@@ -667,7 +668,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // Title and subtitle
                     Expanded(
                       child: Column(
@@ -687,8 +688,8 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                             isScanning
                                 ? 'Memproses scan...'
                                 : !isCameraInitialized
-                                    ? 'Memuat kamera...'
-                                    : 'Scan barcode KTM untuk verifikasi',
+                                ? 'Memuat kamera...'
+                                : 'Scan barcode KTM untuk verifikasi',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.85),
                               fontSize: 13,
@@ -698,7 +699,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                         ],
                       ),
                     ),
-                    
+
                     // Status indicator
                     if (isScanning)
                       Container(
@@ -712,7 +713,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         ),
                       )
@@ -772,8 +775,10 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                         color: isScanning
                             ? Colors.orange[300]!
                             : isCameraInitialized
-                                ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
-                                : Colors.grey[200]!,
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.3)
+                            : Colors.grey[200]!,
                         width: 2,
                       ),
                       color: Colors.white,
@@ -789,12 +794,14 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                       borderRadius: BorderRadius.circular(14),
                       child: Stack(
                         children: [
-                          if (PlatformConfig.enableScanner && isCameraInitialized)
+                          if (PlatformConfig.enableScanner &&
+                              isCameraInitialized)
                             MobileScanner(
                               controller: cameraController,
                               onDetect: _onDetect,
                             )
-                          else if (PlatformConfig.enableScanner && !isCameraInitialized)
+                          else if (PlatformConfig.enableScanner &&
+                              !isCameraInitialized)
                             _buildCameraLoadingWidget()
                           else
                             _buildUnsupportedPlatformWidget(),
@@ -816,7 +823,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                                       child: Column(
                                         children: [
                                           CircularProgressIndicator(
-                                            color: Theme.of(context).colorScheme.primary,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                             strokeWidth: 3,
                                           ),
                                           const SizedBox(height: 12),
@@ -852,14 +861,18 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.3),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
                             ],
                           ),
                           child: ElevatedButton.icon(
-                            onPressed: isScanning ? null : _showManualInputDialog,
+                            onPressed: isScanning
+                                ? null
+                                : _showManualInputDialog,
                             icon: const Icon(Icons.keyboard, size: 20),
                             label: const Text(
                               'Input Manual NIM/Plat',
@@ -869,7 +882,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -889,10 +904,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                     decoration: BoxDecoration(
                       color: Colors.blue[50],
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.blue[100]!,
-                        width: 1,
-                      ),
+                      border: Border.all(color: Colors.blue[100]!, width: 1),
                     ),
                     child: Row(
                       children: [

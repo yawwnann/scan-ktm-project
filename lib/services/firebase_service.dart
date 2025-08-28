@@ -2,7 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../models/student.dart';
 import '../models/scan_history.dart';
-import '../utils/logger.dart';
+import '../utils/logging/logger.dart';
 
 class FirebaseService {
   static final DatabaseReference _database = FirebaseDatabase.instanceFor(

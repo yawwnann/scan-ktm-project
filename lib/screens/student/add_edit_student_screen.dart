@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
-import '../models/student.dart';
-import '../models/faculty_data.dart';
-import '../services/firebase_service.dart';
-import '../utils/logger.dart';
-import '../config/app_config.dart';
-import '../data/demo_data.dart';
+import '../../models/student.dart';
+import '../../models/faculty_data.dart';
+import '../../services/firebase_service.dart';
+import '../../services/ocr_service.dart';
+import '../../utils/logging/logger.dart';
+import '../../config/app_config.dart';
+import '../../data/demo_data.dart';
 
 class AddEditStudentScreen extends StatefulWidget {
   final Student? student;
   final String? initialBarcode;
   final String? scanMethod;
+  final OCRResult? ocrResult;
 
-  const AddEditStudentScreen({super.key, this.student, this.initialBarcode, this.scanMethod});
+  const AddEditStudentScreen({
+    super.key, 
+    this.student, 
+    this.initialBarcode, 
+    this.scanMethod,
+    this.ocrResult,
+  });
 
   @override
   State<AddEditStudentScreen> createState() => _AddEditStudentScreenState();
@@ -33,14 +41,27 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
   void initState() {
     super.initState();
     _isEditMode = widget.student != null;
+    
     if (_isEditMode) {
+      // Mode edit - isi dengan data mahasiswa yang ada
       _nimController.text = widget.student!.nim;
       _nameController.text = widget.student!.name;
       _facultyController.text = widget.student!.faculty;
       _studyProgramController.text = widget.student!.studyProgram;
       _vehicleNumberController.text = widget.student!.vehicleNumber;
       _vehicleTypeController.text = widget.student!.vehicleType;
+    } else if (widget.ocrResult != null) {
+      // Mode tambah dengan data OCR - isi otomatis dari hasil OCR
+      _nimController.text = widget.ocrResult!.nim ?? '';
+      _nameController.text = widget.ocrResult!.name ?? '';
+      _facultyController.text = widget.ocrResult!.faculty ?? '';
+      _studyProgramController.text = widget.ocrResult!.studyProgram ?? '';
+      // Nomor kendaraan dari OCR (jika ada) atau kosong untuk diisi manual
+      _vehicleNumberController.text = widget.ocrResult!.vehicleNumber ?? '';
+      // Jenis kendaraan default kosong, harus diisi manual
+      _vehicleTypeController.text = '';
     } else if (widget.initialBarcode != null) {
+      // Mode tambah dengan barcode saja
       _nimController.text = widget.initialBarcode!;
     }
   }
@@ -291,7 +312,9 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
   }) {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      initialValue: controller.text.isEmpty ? null : controller.text,
+      value: controller.text.isEmpty || !items.contains(controller.text) 
+          ? null 
+          : controller.text,
       decoration:
           _getBaseInputDecoration(
             labelText: labelText,
@@ -322,56 +345,44 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
-        title: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha((255 * 0.2).round()),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                _isEditMode ? Icons.edit : Icons.person_add,
-                size: 20,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(width: 12),
-            Text(
-              _isEditMode ? 'Edit Mahasiswa' : 'Tambah Mahasiswa',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
+        title: Text(
+          _isEditMode ? 'Edit Mahasiswa' : 'Tambah Mahasiswa',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         actions: [
-          if (_isEditMode)
-            Container(
-              margin: EdgeInsets.only(right: 16, top: 8, bottom: 8),
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primary.withAlpha((255 * 0.15).round()),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.edit,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.primary,
+          if (widget.ocrResult != null && !_isEditMode)
+            Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withAlpha((255 * 0.3).round()),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  SizedBox(width: 4),
-                  Text(
-                    'Edit Mode',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.auto_awesome,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'OCR',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
         ],
@@ -390,24 +401,38 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: widget.ocrResult != null && !_isEditMode
+                            ? Colors.green[50]
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(
+                          color: widget.ocrResult != null && !_isEditMode
+                              ? Colors.green[200]!
+                              : Colors.grey.shade200,
+                        ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            Icons.info_outline,
-                            color: Theme.of(context).colorScheme.primary,
+                            widget.ocrResult != null && !_isEditMode
+                                ? Icons.auto_awesome
+                                : Icons.info_outline,
+                            color: widget.ocrResult != null && !_isEditMode
+                                ? Colors.green[600]
+                                : Theme.of(context).colorScheme.primary,
                           ),
                           SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               _isEditMode
                                   ? 'Anda sedang mengedit data mahasiswa. NIM tidak dapat diubah.'
-                                  : 'Lengkapi semua data yang diperlukan dengan benar.',
+                                  : widget.ocrResult != null
+                                      ? 'Data telah diisi otomatis dari hasil OCR. Periksa dan lengkapi data yang masih kosong, terutama nomor plat kendaraan.'
+                                      : 'Lengkapi semua data yang diperlukan dengan benar.',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
+                                color: widget.ocrResult != null && !_isEditMode
+                                    ? Colors.green[700]
+                                    : Theme.of(context).colorScheme.primary,
                                 fontSize: 14,
                               ),
                             ),
@@ -460,7 +485,15 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
                         onChanged: (String? newValue) {
                           setState(() {
                             _facultyController.text = newValue ?? '';
-                            _studyProgramController.clear();
+                            // Jika fakultas berubah dan program studi tidak sesuai, kosongkan
+                            if (_facultyController.text.isNotEmpty) {
+                              final availablePrograms = FacultyData.getAllStudyPrograms(_facultyController.text);
+                              if (!availablePrograms.contains(_studyProgramController.text)) {
+                                _studyProgramController.clear();
+                              }
+                            } else {
+                              _studyProgramController.clear();
+                            }
                           });
                         },
                         validator: (value) {

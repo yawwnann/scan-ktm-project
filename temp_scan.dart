@@ -3,7 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'lib/models/student.dart';
 import 'lib/services/student_service.dart';
 import 'lib/config/platform_config.dart';
-import 'lib/screens/result_screen.dart';
+import 'lib/screens/scan/result_screen.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});

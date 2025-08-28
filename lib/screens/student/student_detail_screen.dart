@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/student.dart';
+import '../../models/student.dart';
 import 'add_edit_student_screen.dart';
-import 'main_navigation_screen.dart';
 
 class StudentDetailScreen extends StatelessWidget {
   final Student student;
@@ -58,7 +57,7 @@ class StudentDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: CustomScrollView(
         slivers: [
           // Custom App Bar with gradient

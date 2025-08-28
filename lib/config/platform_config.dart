@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../utils/logger.dart';
+import '../utils/logging/logger.dart';
 
 class PlatformConfig {
   // Deteksi platform

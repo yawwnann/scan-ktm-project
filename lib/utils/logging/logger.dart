@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../config/app_config.dart';
+import '../../config/app_config.dart';
 
 class Logger {
   static void debug(String message) {

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 
-import 'main_navigation_screen.dart';
+import '../navigation/main_navigation_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'auth_screen.dart';
 
@@ -83,6 +84,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(color: Color(0xFF1565C0)),

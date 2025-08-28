@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-import 'screens/splash_screen.dart';
+import 'screens/auth/splash_screen.dart';
 
 void main() async {
   // Pastikan Flutter siap.
@@ -42,8 +42,6 @@ class MyApp extends StatelessWidget {
           onError: Colors.white,
           surface: Colors.white,
           onSurface: Color(0xFF212121),
-          background: Colors.white,
-          onBackground: Color(0xFF212121),
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF1565C0),
@@ -175,6 +173,7 @@ class MyApp extends StatelessWidget {
       ),
       // Langsung ke SplashScreen karena Firebase sudah diinisialisasi.
       home: const SplashScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
