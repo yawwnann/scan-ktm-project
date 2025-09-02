@@ -312,7 +312,7 @@ class _AddEditStudentScreenState extends State<AddEditStudentScreen> {
   }) {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      value: controller.text.isEmpty || !items.contains(controller.text) 
+      initialValue: controller.text.isEmpty || !items.contains(controller.text) 
           ? null 
           : controller.text,
       decoration:

@@ -17,9 +17,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const ScanScreen(key: ValueKey('scan')),
     const OCRScreen(key: ValueKey('ocr')),
     const StudentListScreen(key: ValueKey('student_list')),
+    const ScanScreen(key: ValueKey('scan')), 
     const ScanHistoryScreen(key: ValueKey('scan_history')),
     const ProfileScreen(key: ValueKey('profile')),
   ];
@@ -33,7 +33,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   @override
   void initState() {
     super.initState();
-    // Ensure navigation bar is visible after initialization
+    // Set barcode sebagai halaman default
+    _currentIndex = 2;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() {});
@@ -59,7 +60,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   @override
   void didPushNext() {
     super.didPushNext();
-    // Force a rebuild when navigating away from this screen
     if (mounted) {
       setState(() {});
     }
@@ -68,7 +68,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   @override
   void didPop() {
     super.didPop();
-    // Force a rebuild when this screen is popped
     if (mounted) {
       setState(() {});
     }
@@ -77,10 +76,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   @override
   void didPopNext() {
     super.didPopNext();
-    // Force a rebuild when returning to this screen
     if (mounted) {
       setState(() {});
-      // Force another rebuild to ensure navigation bar visibility
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           setState(() {});
@@ -92,7 +89,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   @override
   void didPush() {
     super.didPush();
-    // Force a rebuild when this screen is pushed
     if (mounted) {
       setState(() {});
     }
@@ -102,57 +98,154 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   Widget build(BuildContext context) {
     super.build(context);
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colorScheme.surface,
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
+        height: 80,
         decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: colorScheme.shadow.withOpacity(0.1),
               blurRadius: 10,
-              offset: const Offset(0, -2),
+              offset: const Offset(0, -5),
+              spreadRadius: 0,
             ),
           ],
         ),
-        child: BottomNavigationBar(
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.document_scanner_outlined),
-              activeIcon: Icon(Icons.document_scanner),
-              label: 'Barcode',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.text_fields_outlined),
-              activeIcon: Icon(Icons.text_fields),
-              label: 'OCR',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.group_outlined),
-              activeIcon: Icon(Icons.group),
-              label: 'Mahasiswa',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.access_time_outlined),
-              activeIcon: Icon(Icons.access_time),
-              label: 'Riwayat',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outlined),
-              activeIcon: Icon(Icons.person),
-              label: 'Profil',
-            ),
-          ],
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // OCR
+              _buildNavItem(
+                icon: Icons.text_fields_outlined,
+                activeIcon: Icons.text_fields,
+                label: 'OCR',
+                index: 0,
+                colorScheme: colorScheme,
+              ),
+              // Mahasiswa
+              _buildNavItem(
+                icon: Icons.group_outlined,
+                activeIcon: Icons.group,
+                label: 'Mahasiswa',
+                index: 1,
+                colorScheme: colorScheme,
+              ),
+              // Barcode (Center - Floating)
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                child: GestureDetector(
+                  onTap: () => _onItemTapped(2),
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          colorScheme.primary,
+                          colorScheme.primary.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.primary.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.qr_code_scanner,
+                      color: colorScheme.onPrimary,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
+              // Riwayat
+              _buildNavItem(
+                icon: Icons.access_time_outlined,
+                activeIcon: Icons.access_time_filled,
+                label: 'Riwayat',
+                index: 3,
+                colorScheme: colorScheme,
+              ),
+              // Profil
+              _buildNavItem(
+                icon: Icons.person_outlined,
+                activeIcon: Icons.person,
+                label: 'Profil',
+                index: 4,
+                colorScheme: colorScheme,
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required int index,
+    required ColorScheme colorScheme,
+  }) {
+    final bool isSelected = _currentIndex == index;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onItemTapped(index),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isSelected ? activeIcon : icon,
+                size: 24,
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurface.withOpacity(0.6),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected
+                      ? colorScheme.primary
+                      : colorScheme.onSurface.withOpacity(0.6),
+                  height: 1.0,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onItemTapped(int index) {
+    if (_currentIndex != index) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
   }
 }

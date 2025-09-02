@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/ocr_service.dart';
-import '../../models/student.dart';
 import 'result_screen.dart';
 import '../student/add_edit_student_screen.dart';
 
