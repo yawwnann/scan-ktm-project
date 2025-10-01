@@ -146,9 +146,6 @@ class _StudentListScreenState extends State<StudentListScreen>
     return count;
   }
 
-  Future<void> _refreshData() async {
-    await _loadStudents();
-  }
 
   Future<void> _deleteStudent(Student student) async {
     final confirmed = await showDialog<bool>(

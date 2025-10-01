@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -7,19 +8,53 @@ import 'screens/auth/splash_screen.dart';
 void main() async {
   // Pastikan Flutter siap.
   WidgetsFlutterBinding.ensureInitialized();
-  // Inisialisasi Firebase secara aman, hindari duplikasi (race condition/hot restart)
-  if (Firebase.apps.isEmpty) {
-    try {
+
+  // Konfigurasi System UI untuk Android
+  await _configureSystemUI();
+
+  // Inisialisasi Firebase secara aman
+  try {
+    if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-    } on FirebaseException catch (e) {
-      // Abaikan error duplikasi jika [DEFAULT] sudah ada
-      if (e.code != 'duplicate-app') rethrow;
+      print('Firebase initialized successfully');
+    } else {
+      print('Firebase already initialized');
     }
+  } on FirebaseException catch (e) {
+    print('Firebase initialization error: ${e.code} - ${e.message}');
+    // Abaikan error duplikasi jika [DEFAULT] sudah ada
+    if (e.code != 'duplicate-app') {
+      print('Critical Firebase error, rethrowing...');
+      rethrow;
+    }
+  } catch (e) {
+    print('Unexpected error during Firebase initialization: $e');
+    rethrow;
   }
+
   // Jalankan aplikasi setelah Firebase siap.
   runApp(const MyApp());
+}
+
+Future<void> _configureSystemUI() async {
+  // Konfigurasi system UI overlay untuk Android
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent, // Status bar transparan
+      statusBarIconBrightness: Brightness.dark, // Ikon status bar gelap
+      systemNavigationBarColor: Colors.transparent, // Navigation bar transparan
+      systemNavigationBarIconBrightness: Brightness.dark, // Ikon nav bar gelap
+      systemNavigationBarDividerColor: Colors.transparent, // Divider transparan
+    ),
+  );
+
+  // Set orientasi layar (opsional)
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 }
 
 // Gunakan StatelessWidget yang sederhana.
@@ -30,6 +65,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'STNK Check UAD',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: const ColorScheme(
@@ -173,7 +209,6 @@ class MyApp extends StatelessWidget {
       ),
       // Langsung ke SplashScreen karena Firebase sudah diinisialisasi.
       home: const SplashScreen(),
-      debugShowCheckedModeBanner: false,
     );
   }
 }
