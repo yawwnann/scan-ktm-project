@@ -22,13 +22,13 @@ class _StudentListScreenState extends State<StudentListScreen>
   String searchQuery = '';
   TextEditingController searchController = TextEditingController();
   String? sortOption;
-  
+
   // Filter options
   String? selectedFaculty;
   String? selectedStudyProgram;
   String? selectedVehicleType;
   bool showFilters = false;
-  
+
   // Available filter values
   List<String> availableFaculties = [];
   List<String> availableStudyPrograms = [];
@@ -100,21 +100,22 @@ class _StudentListScreenState extends State<StudentListScreen>
   void _updateFilterOptions(List<Student> students) {
     // Use predefined faculty data from FacultyData
     availableFaculties = FacultyData.getFaculties();
-    
+
     // Get all study programs from all faculties
     availableStudyPrograms = [];
     for (String faculty in availableFaculties) {
       availableStudyPrograms.addAll(FacultyData.getAllStudyPrograms(faculty));
     }
     availableStudyPrograms = availableStudyPrograms.toSet().toList()..sort();
-    
+
     // Keep vehicle types from actual student data
-    availableVehicleTypes = students
-        .map((s) => s.vehicleType)
-        .where((vt) => vt.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+    availableVehicleTypes =
+        students
+            .map((s) => s.vehicleType)
+            .where((vt) => vt.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
   }
 
   void _clearAllFilters() {
@@ -145,7 +146,6 @@ class _StudentListScreenState extends State<StudentListScreen>
     if (sortOption != null) count++;
     return count;
   }
-
 
   Future<void> _deleteStudent(Student student) async {
     final confirmed = await showDialog<bool>(
@@ -320,27 +320,37 @@ class _StudentListScreenState extends State<StudentListScreen>
 
     // Apply faculty filter
     if (selectedFaculty != null) {
-      filtered = filtered.where((student) => student.faculty == selectedFaculty).toList();
+      filtered = filtered
+          .where((student) => student.faculty == selectedFaculty)
+          .toList();
     }
 
     // Apply study program filter
     if (selectedStudyProgram != null) {
-      filtered = filtered.where((student) => student.studyProgram == selectedStudyProgram).toList();
+      filtered = filtered
+          .where((student) => student.studyProgram == selectedStudyProgram)
+          .toList();
     }
 
     // Apply vehicle type filter
     if (selectedVehicleType != null) {
-      filtered = filtered.where((student) => student.vehicleType == selectedVehicleType).toList();
+      filtered = filtered
+          .where((student) => student.vehicleType == selectedVehicleType)
+          .toList();
     }
 
     // Apply sorting
     if (sortOption != null) {
       switch (sortOption) {
         case 'name_asc':
-          filtered.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          filtered.sort(
+            (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+          );
           break;
         case 'name_desc':
-          filtered.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+          filtered.sort(
+            (a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()),
+          );
           break;
         case 'nim_asc':
           filtered.sort((a, b) => a.nim.compareTo(b.nim));
@@ -349,10 +359,16 @@ class _StudentListScreenState extends State<StudentListScreen>
           filtered.sort((a, b) => b.nim.compareTo(a.nim));
           break;
         case 'faculty_asc':
-          filtered.sort((a, b) => a.faculty.toLowerCase().compareTo(b.faculty.toLowerCase()));
+          filtered.sort(
+            (a, b) =>
+                a.faculty.toLowerCase().compareTo(b.faculty.toLowerCase()),
+          );
           break;
         case 'faculty_desc':
-          filtered.sort((a, b) => b.faculty.toLowerCase().compareTo(a.faculty.toLowerCase()));
+          filtered.sort(
+            (a, b) =>
+                b.faculty.toLowerCase().compareTo(a.faculty.toLowerCase()),
+          );
           break;
         case 'scan_time_newest':
           filtered.sort((a, b) => b.scanTime.compareTo(a.scanTime));
@@ -380,8 +396,8 @@ class _StudentListScreenState extends State<StudentListScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                  const Color(0xFF1565C0), // Consistent blue color
+                  const Color(0xFF1976D2), // Slightly darker blue
                 ],
               ),
               borderRadius: const BorderRadius.only(
@@ -390,7 +406,7 @@ class _StudentListScreenState extends State<StudentListScreen>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  color: const Color(0xFF1565C0).withOpacity(0.3),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),
@@ -420,7 +436,7 @@ class _StudentListScreenState extends State<StudentListScreen>
                       ),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // Title and subtitle
                     Expanded(
                       child: Column(
@@ -447,7 +463,7 @@ class _StudentListScreenState extends State<StudentListScreen>
                         ],
                       ),
                     ),
-                    
+
                     // Statistics badge
                     if (!isLoading)
                       Container(
@@ -524,7 +540,9 @@ class _StudentListScreenState extends State<StudentListScreen>
                               margin: const EdgeInsets.all(8),
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
+                                color: const Color(
+                                  0xFF1565C0,
+                                ), // Consistent blue
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Icon(
@@ -594,11 +612,13 @@ class _StudentListScreenState extends State<StudentListScreen>
                                     });
                                   },
                                   icon: Icon(
-                                    showFilters ? Icons.filter_list_off : Icons.tune,
+                                    showFilters
+                                        ? Icons.filter_list_off
+                                        : Icons.tune,
                                     size: 18,
                                   ),
                                   label: Text(
-                                    hasActiveFilters 
+                                    hasActiveFilters
                                         ? 'Filter (${_getActiveFilterCount()})'
                                         : 'Filter',
                                     style: const TextStyle(
@@ -607,10 +627,12 @@ class _StudentListScreenState extends State<StudentListScreen>
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: hasActiveFilters 
-                                        ? Theme.of(context).colorScheme.primary
+                                    backgroundColor: hasActiveFilters
+                                        ? const Color(
+                                            0xFF1565C0,
+                                          ) // Consistent blue
                                         : Colors.white,
-                                    foregroundColor: hasActiveFilters 
+                                    foregroundColor: hasActiveFilters
                                         ? Colors.white
                                         : Colors.grey[700],
                                     elevation: 0,
@@ -621,8 +643,10 @@ class _StudentListScreenState extends State<StudentListScreen>
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                       side: BorderSide(
-                                        color: hasActiveFilters 
-                                            ? Theme.of(context).colorScheme.primary
+                                        color: hasActiveFilters
+                                            ? const Color(
+                                                0xFF1565C0,
+                                              ) // Consistent blue
                                             : Colors.grey[200]!,
                                         width: 1,
                                       ),
@@ -750,34 +774,41 @@ class _StudentListScreenState extends State<StudentListScreen>
                                       vertical: 12,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: sortOption != null 
-                                          ? Theme.of(context).colorScheme.primary
+                                      color: sortOption != null
+                                          ? const Color(
+                                              0xFF1565C0,
+                                            ) // Consistent blue
                                           : Colors.white,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: sortOption != null 
-                                            ? Theme.of(context).colorScheme.primary
+                                        color: sortOption != null
+                                            ? const Color(
+                                                0xFF1565C0,
+                                              ) // Consistent blue
                                             : Colors.grey[200]!,
                                         width: 1,
                                       ),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.sort,
                                           size: 18,
-                                          color: sortOption != null 
+                                          color: sortOption != null
                                               ? Colors.white
                                               : Colors.grey[700],
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          sortOption != null ? 'Diurutkan' : 'Urutkan',
+                                          sortOption != null
+                                              ? 'Diurutkan'
+                                              : 'Urutkan',
                                           style: TextStyle(
                                             fontWeight: FontWeight.w600,
                                             fontSize: 13,
-                                            color: sortOption != null 
+                                            color: sortOption != null
                                                 ? Colors.white
                                                 : Colors.grey[700],
                                           ),
@@ -815,7 +846,9 @@ class _StudentListScreenState extends State<StudentListScreen>
                                 children: [
                                   Icon(
                                     Icons.tune,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: const Color(
+                                      0xFF1565C0,
+                                    ), // Consistent blue
                                     size: 22,
                                   ),
                                   const SizedBox(width: 8),
@@ -831,7 +864,10 @@ class _StudentListScreenState extends State<StudentListScreen>
                                   if (hasActiveFilters)
                                     TextButton.icon(
                                       onPressed: _clearAllFilters,
-                                      icon: const Icon(Icons.clear_all, size: 16),
+                                      icon: const Icon(
+                                        Icons.clear_all,
+                                        size: 16,
+                                      ),
                                       label: const Text('Hapus Semua'),
                                       style: TextButton.styleFrom(
                                         foregroundColor: Colors.red[600],
@@ -858,9 +894,13 @@ class _StudentListScreenState extends State<StudentListScreen>
                                 const SizedBox(height: 8),
                                 Container(
                                   width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey[200]!),
+                                    border: Border.all(
+                                      color: Colors.grey[200]!,
+                                    ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: DropdownButtonHideUnderline(
@@ -873,19 +913,26 @@ class _StudentListScreenState extends State<StudentListScreen>
                                           value: null,
                                           child: Text('Semua Fakultas'),
                                         ),
-                                        ...availableFaculties.map((faculty) =>
-                                            DropdownMenuItem<String>(
-                                              value: faculty,
-                                              child: Text(faculty),
-                                            )),
+                                        ...availableFaculties.map(
+                                          (faculty) => DropdownMenuItem<String>(
+                                            value: faculty,
+                                            child: Text(faculty),
+                                          ),
+                                        ),
                                       ],
                                       onChanged: (value) {
                                         setState(() {
                                           selectedFaculty = value;
                                           // Reset study program when faculty changes
-                                          if (selectedStudyProgram != null && selectedFaculty != null) {
-                                            final facultyPrograms = FacultyData.getAllStudyPrograms(selectedFaculty!);
-                                            if (!facultyPrograms.contains(selectedStudyProgram)) {
+                                          if (selectedStudyProgram != null &&
+                                              selectedFaculty != null) {
+                                            final facultyPrograms =
+                                                FacultyData.getAllStudyPrograms(
+                                                  selectedFaculty!,
+                                                );
+                                            if (!facultyPrograms.contains(
+                                              selectedStudyProgram,
+                                            )) {
                                               selectedStudyProgram = null;
                                             }
                                           }
@@ -910,9 +957,13 @@ class _StudentListScreenState extends State<StudentListScreen>
                                 const SizedBox(height: 8),
                                 Container(
                                   width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey[200]!),
+                                    border: Border.all(
+                                      color: Colors.grey[200]!,
+                                    ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: DropdownButtonHideUnderline(
@@ -926,14 +977,18 @@ class _StudentListScreenState extends State<StudentListScreen>
                                           child: Text('Semua Program Studi'),
                                         ),
                                         // Show only programs from selected faculty if faculty is selected
-                                        ...(selectedFaculty != null 
-                                            ? FacultyData.getAllStudyPrograms(selectedFaculty!)
-                                            : availableStudyPrograms)
-                                            .map((program) =>
-                                            DropdownMenuItem<String>(
-                                              value: program,
-                                              child: Text(program),
-                                            )),
+                                        ...(selectedFaculty != null
+                                                ? FacultyData.getAllStudyPrograms(
+                                                    selectedFaculty!,
+                                                  )
+                                                : availableStudyPrograms)
+                                            .map(
+                                              (program) =>
+                                                  DropdownMenuItem<String>(
+                                                    value: program,
+                                                    child: Text(program),
+                                                  ),
+                                            ),
                                       ],
                                       onChanged: (value) {
                                         setState(() {
@@ -959,9 +1014,13 @@ class _StudentListScreenState extends State<StudentListScreen>
                                 const SizedBox(height: 8),
                                 Container(
                                   width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey[200]!),
+                                    border: Border.all(
+                                      color: Colors.grey[200]!,
+                                    ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: DropdownButtonHideUnderline(
@@ -974,11 +1033,12 @@ class _StudentListScreenState extends State<StudentListScreen>
                                           value: null,
                                           child: Text('Semua Jenis Kendaraan'),
                                         ),
-                                        ...availableVehicleTypes.map((type) =>
-                                            DropdownMenuItem<String>(
-                                              value: type,
-                                              child: Text(type),
-                                            )),
+                                        ...availableVehicleTypes.map(
+                                          (type) => DropdownMenuItem<String>(
+                                            value: type,
+                                            child: Text(type),
+                                          ),
+                                        ),
                                       ],
                                       onChanged: (value) {
                                         setState(() {
@@ -1007,14 +1067,20 @@ class _StudentListScreenState extends State<StudentListScreen>
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      Theme.of(context).colorScheme.primary,
-                                      Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                      const Color(
+                                        0xFF1565C0,
+                                      ), // Consistent blue
+                                      const Color(
+                                        0xFF1976D2,
+                                      ), // Slightly darker blue
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                      color: const Color(
+                                        0xFF1565C0,
+                                      ).withOpacity(0.3),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -1110,7 +1176,9 @@ class _StudentListScreenState extends State<StudentListScreen>
                                 children: [
                                   CircularProgressIndicator(
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      Theme.of(context).colorScheme.primary,
+                                      const Color(
+                                        0xFF1565C0,
+                                      ), // Consistent blue
                                     ),
                                     strokeWidth: 3,
                                   ),
@@ -1174,7 +1242,10 @@ class _StudentListScreenState extends State<StudentListScreen>
                                     const SizedBox(height: 16),
                                     TextButton.icon(
                                       onPressed: _clearAllFilters,
-                                      icon: const Icon(Icons.clear_all, size: 18),
+                                      icon: const Icon(
+                                        Icons.clear_all,
+                                        size: 18,
+                                      ),
                                       label: const Text('Hapus Semua Filter'),
                                     ),
                                   ],
@@ -1183,19 +1254,28 @@ class _StudentListScreenState extends State<StudentListScreen>
                             ),
                           )
                         : Column(
-                            children: List.generate(filteredStudents.length, (index) {
+                            children: List.generate(filteredStudents.length, (
+                              index,
+                            ) {
                               final student = filteredStudents[index];
                               return Container(
-                                margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                                margin: const EdgeInsets.fromLTRB(
+                                  20,
+                                  0,
+                                  20,
+                                  12,
+                                ),
                                 child: InkWell(
                                   onTap: () async {
-                                    final result = await Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => StudentDetailScreen(
-                                          student: student,
-                                        ),
-                                      ),
-                                    );
+                                    final result = await Navigator.of(context)
+                                        .push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                StudentDetailScreen(
+                                                  student: student,
+                                                ),
+                                          ),
+                                        );
 
                                     if (mounted) {
                                       setState(() {});
@@ -1231,14 +1311,23 @@ class _StudentListScreenState extends State<StudentListScreen>
                                               decoration: BoxDecoration(
                                                 gradient: LinearGradient(
                                                   colors: [
-                                                    Theme.of(context).colorScheme.primary,
-                                                    Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
+                                                    Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                        .withOpacity(0.8),
                                                   ],
                                                 ),
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                        .withOpacity(0.3),
                                                     blurRadius: 6,
                                                     offset: const Offset(0, 2),
                                                   ),
@@ -1261,7 +1350,8 @@ class _StudentListScreenState extends State<StudentListScreen>
                                           // Student Info
                                           Expanded(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   student.name,
@@ -1273,20 +1363,30 @@ class _StudentListScreenState extends State<StudentListScreen>
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 3,
-                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 3,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                        .withOpacity(0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
                                                   ),
                                                   child: Text(
                                                     student.nim,
                                                     style: TextStyle(
-                                                      color: Theme.of(context).colorScheme.primary,
+                                                      color: Theme.of(
+                                                        context,
+                                                      ).colorScheme.primary,
                                                       fontSize: 10,
-                                                      fontWeight: FontWeight.w600,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
                                                 ),
@@ -1304,7 +1404,8 @@ class _StudentListScreenState extends State<StudentListScreen>
                                                       style: TextStyle(
                                                         color: Colors.grey[400],
                                                         fontSize: 10,
-                                                        fontStyle: FontStyle.italic,
+                                                        fontStyle:
+                                                            FontStyle.italic,
                                                       ),
                                                     ),
                                                   ],
@@ -1318,14 +1419,16 @@ class _StudentListScreenState extends State<StudentListScreen>
                                             children: [
                                               // Delete Button
                                               IconButton(
-                                                onPressed: () => _deleteStudent(student),
+                                                onPressed: () =>
+                                                    _deleteStudent(student),
                                                 icon: Icon(
                                                   Icons.delete_outline,
                                                   color: Colors.red[400],
                                                   size: 20,
                                                 ),
                                                 padding: EdgeInsets.zero,
-                                                constraints: const BoxConstraints(),
+                                                constraints:
+                                                    const BoxConstraints(),
                                                 tooltip: 'Hapus Mahasiswa',
                                               ),
                                               const SizedBox(width: 8),
@@ -1370,7 +1473,7 @@ class _StudentListScreenState extends State<StudentListScreen>
           'Tambah Mahasiswa',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: const Color(0xFF1565C0), // Consistent blue
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
