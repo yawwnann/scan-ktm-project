@@ -122,5 +122,6 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/logo.png"
+  remove_alpha_ios: true # Hapus alpha channel untuk iOS App Store
   adaptive_icon_background: "#FFFFFF" # Sesuaikan dengan warna background logo Anda
   adaptive_icon_foreground: "assets/logo.png"

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'firebase_options.dart';
 
 import 'screens/auth/splash_screen.dart';
@@ -18,7 +19,14 @@ void main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      print('Firebase initialized successfully');
+
+      // Enable persistence untuk offline support
+      FirebaseDatabase.instance.setPersistenceEnabled(true);
+      FirebaseDatabase.instance.setPersistenceCacheSizeBytes(
+        10000000,
+      ); // 10MB cache
+
+      print('Firebase initialized successfully with persistence enabled');
     } else {
       print('Firebase already initialized');
     }

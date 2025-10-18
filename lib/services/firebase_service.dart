@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../models/student.dart';
@@ -6,6 +7,18 @@ import '../utils/logging/logger.dart';
 
 class FirebaseService {
   static DatabaseReference? _database;
+
+  // Cache untuk student data (5 menit)
+  static final Map<String, Student?> _studentCache = {};
+  static final Map<String, DateTime> _cacheTimestamp = {};
+  static const Duration _cacheDuration = Duration(minutes: 5);
+
+  // Check if cache is still valid
+  static bool _isCacheValid(String key) {
+    if (!_cacheTimestamp.containsKey(key)) return false;
+    final age = DateTime.now().difference(_cacheTimestamp[key]!);
+    return age < _cacheDuration;
+  }
 
   // Getter untuk database dengan error handling
   static DatabaseReference get database {
@@ -48,14 +61,39 @@ class FirebaseService {
     }
   }
 
-  // Get student by NIM
+  // Get student by NIM with timeout and cache
   static Future<Student?> getStudentByNIM(String nim) async {
     try {
-      final snapshot = await database.child('students/$nim').get();
+      // Check cache first
+      if (_isCacheValid(nim) && _studentCache.containsKey(nim)) {
+        Logger.info('Cache hit for NIM: $nim');
+        return _studentCache[nim];
+      }
+
+      final snapshot = await database
+          .child('students/$nim')
+          .get()
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              Logger.error('Timeout getting student by NIM: $nim');
+              throw TimeoutException('Connection timeout');
+            },
+          );
+
+      Student? student;
       if (snapshot.exists) {
         final data = snapshot.value as Map<dynamic, dynamic>;
-        return Student.fromFirestore(data);
+        student = Student.fromFirestore(data);
       }
+
+      // Update cache
+      _studentCache[nim] = student;
+      _cacheTimestamp[nim] = DateTime.now();
+
+      return student;
+    } on TimeoutException {
+      Logger.error('Request timeout for NIM: $nim');
       return null;
     } on FirebaseException catch (e) {
       Logger.error(
@@ -68,21 +106,35 @@ class FirebaseService {
     }
   }
 
-  // Get student by vehicle number
+  // Get student by vehicle number with timeout and indexing
   static Future<Student?> getStudentByVehicleNumber(
     String vehicleNumber,
   ) async {
     try {
-      final snapshot = await database.child('students').get();
+      // Use query with ordering for better performance
+      final snapshot = await database
+          .child('students')
+          .orderByChild('vehicle_number')
+          .equalTo(vehicleNumber)
+          .get()
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              Logger.error(
+                'Timeout getting student by vehicle: $vehicleNumber',
+              );
+              throw TimeoutException('Connection timeout');
+            },
+          );
+
       if (snapshot.exists) {
         final students = snapshot.value as Map<dynamic, dynamic>;
-        for (var entry in students.entries) {
-          final studentData = entry.value as Map<dynamic, dynamic>;
-          if (studentData['vehicle_number'] == vehicleNumber) {
-            return Student.fromFirestore(studentData);
-          }
-        }
+        final studentData = students.values.first as Map<dynamic, dynamic>;
+        return Student.fromFirestore(studentData);
       }
+      return null;
+    } on TimeoutException {
+      Logger.error('Request timeout for vehicle: $vehicleNumber');
       return null;
     } on FirebaseException catch (e) {
       Logger.error(
@@ -255,7 +307,7 @@ class FirebaseService {
         final data = snapshot.value as Map<dynamic, dynamic>;
         return {
           'total_scans': data.length,
-          'today_scans': 0, 
+          'today_scans': 0,
           'unique_students': 0,
         };
       }

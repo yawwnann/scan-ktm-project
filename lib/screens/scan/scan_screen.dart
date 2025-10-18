@@ -618,141 +618,194 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     PlatformConfig.showPlatformWarning();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF5F7FA),
       body: Column(
         children: [
-          // Compact Modern Header (matching OCR design)
+          // Modern Gradient Header dengan Glassmorphism
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                  const Color(0xFF1565C0),
+                  const Color(0xFF1976D2),
+                  const Color(0xFF1E88E5),
                 ],
-              ),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
+                  color: const Color(0xFF1565C0).withOpacity(0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                child: Row(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+                child: Column(
                   children: [
-                    // Icon with modern design
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.qr_code_scanner_rounded,
-                        size: 24,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-
-                    // Title and subtitle
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Barcode Scanner KTM',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
+                    Row(
+                      children: [
+                        // Icon dengan animasi glow
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.4),
+                              width: 2,
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            isScanning
-                                ? 'Memproses scan...'
-                                : !isCameraInitialized
-                                ? 'Memuat kamera...'
-                                : 'Scan barcode KTM untuk verifikasi',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.85),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Status indicator
-                    if (isScanning)
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        ),
-                      )
-                    else if (isCameraInitialized)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.check_circle,
-                              size: 14,
-                              color: Colors.white,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Siap',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.2),
+                                blurRadius: 12,
+                                spreadRadius: 2,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.qr_code_scanner_rounded,
+                            size: 32,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 16),
+
+                        // Title and subtitle
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'QR Scanner',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black26,
+                                      offset: Offset(0, 2),
+                                      blurRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                isScanning
+                                    ? 'Memproses scan...'
+                                    : !isCameraInitialized
+                                    ? 'Memuat kamera...'
+                                    : 'Arahkan ke barcode KTM',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Status badge dengan glow
+                        if (isScanning)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.orange.withOpacity(0.5),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.orange.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Scanning',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else if (isCameraInitialized)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.greenAccent.withOpacity(0.5),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.greenAccent.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Ready',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -762,110 +815,258 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
           // Content area
           Expanded(
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               child: Column(
                 children: [
-                  // Scanner area with modern design
-                  Container(
-                    margin: const EdgeInsets.all(20),
-                    height: MediaQuery.of(context).size.height * 0.45,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isScanning
-                            ? Colors.orange[300]!
-                            : isCameraInitialized
-                            ? Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.3)
-                            : Colors.grey[200]!,
-                        width: 2,
-                      ),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 15,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Stack(
-                        children: [
-                          if (PlatformConfig.enableScanner &&
-                              isCameraInitialized)
-                            MobileScanner(
-                              controller: cameraController,
-                              onDetect: _onDetect,
-                            )
-                          else if (PlatformConfig.enableScanner &&
-                              !isCameraInitialized)
-                            _buildCameraLoadingWidget()
-                          else
-                            _buildUnsupportedPlatformWidget(),
+                  const SizedBox(height: 24),
 
-                          // Processing overlay
-                          if (isScanning)
-                            Container(
-                              color: Colors.black.withOpacity(0.4),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
+                  // Scanner area dengan frame modern
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        // Scanner frame dengan corner indicators
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.48,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Colors.white, Colors.grey.shade50],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF1565C0,
+                                ).withOpacity(0.15),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
+                                spreadRadius: 0,
+                              ),
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: Stack(
+                              children: [
+                                // Scanner content
+                                if (PlatformConfig.enableScanner &&
+                                    isCameraInitialized)
+                                  MobileScanner(
+                                    controller: cameraController,
+                                    onDetect: _onDetect,
+                                  )
+                                else if (PlatformConfig.enableScanner &&
+                                    !isCameraInitialized)
+                                  _buildCameraLoadingWidget()
+                                else
+                                  _buildUnsupportedPlatformWidget(),
+
+                                // Corner indicators (frame)
+                                if (!isScanning) ...[
+                                  // Top left
+                                  Positioned(
+                                    top: 20,
+                                    left: 20,
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.9),
-                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border(
+                                          top: BorderSide(
+                                            color: const Color(0xFF1565C0),
+                                            width: 4,
+                                          ),
+                                          left: BorderSide(
+                                            color: const Color(0xFF1565C0),
+                                            width: 4,
+                                          ),
+                                        ),
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(12),
+                                        ),
                                       ),
-                                      child: Column(
-                                        children: [
-                                          CircularProgressIndicator(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                            strokeWidth: 3,
+                                    ),
+                                  ),
+                                  // Top right
+                                  Positioned(
+                                    top: 20,
+                                    right: 20,
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          top: BorderSide(
+                                            color: const Color(0xFF1565C0),
+                                            width: 4,
                                           ),
-                                          const SizedBox(height: 12),
-                                          const Text(
-                                            'Memproses scan...',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                          right: BorderSide(
+                                            color: const Color(0xFF1565C0),
+                                            width: 4,
                                           ),
+                                        ),
+                                        borderRadius: const BorderRadius.only(
+                                          topRight: Radius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Bottom left
+                                  Positioned(
+                                    bottom: 20,
+                                    left: 20,
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color: const Color(0xFF1565C0),
+                                            width: 4,
+                                          ),
+                                          left: BorderSide(
+                                            color: const Color(0xFF1565C0),
+                                            width: 4,
+                                          ),
+                                        ),
+                                        borderRadius: const BorderRadius.only(
+                                          bottomLeft: Radius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Bottom right
+                                  Positioned(
+                                    bottom: 20,
+                                    right: 20,
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color: const Color(0xFF1565C0),
+                                            width: 4,
+                                          ),
+                                          right: BorderSide(
+                                            color: const Color(0xFF1565C0),
+                                            width: 4,
+                                          ),
+                                        ),
+                                        borderRadius: const BorderRadius.only(
+                                          bottomRight: Radius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+
+                                // Processing overlay dengan blur
+                                if (isScanning)
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.black.withOpacity(0.3),
+                                          Colors.black.withOpacity(0.5),
                                         ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
+                                    child: Center(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 32,
+                                          vertical: 24,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.95),
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.2,
+                                              ),
+                                              blurRadius: 20,
+                                              spreadRadius: 5,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: const Color(
+                                                  0xFF1565C0,
+                                                ).withOpacity(0.1),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child:
+                                                  const CircularProgressIndicator(
+                                                    color: Color(0xFF1565C0),
+                                                    strokeWidth: 3,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            const Text(
+                                              'Memproses Data',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF212121),
+                                                letterSpacing: 0.3,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Mohon tunggu sebentar...',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
-                        ],
-                      ),
-                    ),
-                  ),
+                          ),
+                        ),
 
-                  // Modern Action buttons
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    child: Column(
-                      children: [
-                        // Manual input button
+                        const SizedBox(height: 24),
+
+                        // Action button dengan gradient
                         Container(
                           width: double.infinity,
-                          height: 52,
+                          height: 58,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(20),
+                            gradient: const LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [Color(0xFF1565C0), Color(0xFF1976D2)],
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+                                color: const Color(0xFF1565C0).withOpacity(0.4),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                                spreadRadius: 0,
                               ),
                             ],
                           ),
@@ -873,22 +1074,32 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                             onPressed: isScanning
                                 ? null
                                 : _showManualInputDialog,
-                            icon: const Icon(Icons.keyboard, size: 20),
+                            icon: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.keyboard_rounded,
+                                size: 20,
+                              ),
+                            ),
                             label: const Text(
-                              'Input Manual NIM/Plat',
+                              'Input Manual NIM / Plat',
                               style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                                letterSpacing: 0.5,
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary,
+                              backgroundColor: Colors.transparent,
                               foregroundColor: Colors.white,
                               elevation: 0,
+                              shadowColor: Colors.transparent,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                             ),
                           ),
@@ -897,52 +1108,78 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                     ),
                   ),
 
-                  // Instructions card
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.blue[100]!, width: 1),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Colors.blue[600],
-                          size: 20,
+                  const SizedBox(height: 24),
+
+                  // Info card dengan icon modern
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            const Color(0xFF1565C0).withOpacity(0.08),
+                            const Color(0xFF1976D2).withOpacity(0.05),
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tips untuk hasil terbaik:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                  color: Colors.blue[800],
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '• Arahkan kamera ke barcode KTM dengan jelas\n• Pastikan barcode tidak terpotong atau buram\n• Hindari pantulan cahaya pada barcode',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.blue[700],
-                                  height: 1.3,
-                                ),
-                              ),
-                            ],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: const Color(0xFF1565C0).withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1565C0).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.lightbulb_rounded,
+                              color: Color(0xFF1565C0),
+                              size: 24,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Tips Scanning:',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                    color: Color(0xFF1565C0),
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '• Arahkan kamera ke barcode dengan jelas\n'
+                                  '• Pastikan tidak ada pantulan cahaya\n'
+                                  '• Jarak ideal: 10-15 cm dari barcode',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[700],
+                                    height: 1.6,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
