@@ -662,7 +662,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.white.withOpacity(0.2),
-                                blurRadius: 12,
+
                                 spreadRadius: 2,
                               ),
                             ],
@@ -769,19 +769,23 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.3),
+                              color: const Color.fromARGB(
+                                255,
+                                255,
+                                255,
+                                255,
+                              ).withOpacity(0.3),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.greenAccent.withOpacity(0.5),
+                                color: const Color.fromARGB(
+                                  255,
+                                  255,
+                                  255,
+                                  255,
+                                ).withOpacity(0.5),
                                 width: 1.5,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.greenAccent.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  spreadRadius: 1,
-                                ),
-                              ],
+                              boxShadow: [BoxShadow(spreadRadius: 1)],
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,

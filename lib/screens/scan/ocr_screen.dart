@@ -69,7 +69,7 @@ class _OCRScreenState extends State<OCRScreen> {
 
     try {
       final result = await OCRService.processImageAndFindStudent(imageFile);
-      
+
       setState(() {
         _extractedText = result.extractedText;
         _ocrResult = result.ocrResult;
@@ -105,7 +105,9 @@ class _OCRScreenState extends State<OCRScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
               Container(
@@ -124,10 +126,7 @@ class _OCRScreenState extends State<OCRScreen> {
               const Expanded(
                 child: Text(
                   'Data tidak ditemukan',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -145,10 +144,7 @@ class _OCRScreenState extends State<OCRScreen> {
               if (result.ocrResult != null) ...[
                 const Text(
                   'Data yang berhasil diekstrak dari KTM:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 Container(
@@ -165,11 +161,20 @@ class _OCRScreenState extends State<OCRScreen> {
                         _buildInfoRow('NIM', result.ocrResult!.nim!),
                       if (result.ocrResult!.name != null)
                         _buildInfoRow('Nama Lengkap', result.ocrResult!.name!),
-                      _buildInfoRow('Fakultas', result.ocrResult!.faculty ?? 'fakultas'),
+                      _buildInfoRow(
+                        'Fakultas',
+                        result.ocrResult!.faculty ?? 'fakultas',
+                      ),
                       if (result.ocrResult!.studyProgram != null)
-                        _buildInfoRow('Program Studi', result.ocrResult!.studyProgram!),
+                        _buildInfoRow(
+                          'Program Studi',
+                          result.ocrResult!.studyProgram!,
+                        ),
                       if (result.ocrResult!.vehicleNumber != null)
-                        _buildInfoRow('Nomor Kendaraan', result.ocrResult!.vehicleNumber!),
+                        _buildInfoRow(
+                          'Nomor Kendaraan',
+                          result.ocrResult!.vehicleNumber!,
+                        ),
                     ],
                   ),
                 ),
@@ -206,10 +211,7 @@ class _OCRScreenState extends State<OCRScreen> {
               const SizedBox(height: 16),
               const Text(
                 'Apakah Anda ingin menambahkan data mahasiswa ini ke sistem?',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -246,13 +248,16 @@ class _OCRScreenState extends State<OCRScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (result.success ? Colors.green : Colors.orange).withOpacity(0.1),
+                  color: (result.success ? Colors.green : Colors.orange)
+                      .withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -281,12 +286,9 @@ class _OCRScreenState extends State<OCRScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    result.message,
-                    style: const TextStyle(fontSize: 14),
-                  ),
+                  Text(result.message, style: const TextStyle(fontSize: 14)),
                   const SizedBox(height: 16),
-                  
+
                   // Tampilkan response JSON
                   if (result.jsonResponse != null) ...[
                     const Text(
@@ -315,7 +317,7 @@ class _OCRScreenState extends State<OCRScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  
+
                   // Tampilkan informasi yang terdeteksi dalam format yang mudah dibaca
                   if (result.ocrResult != null) ...[
                     const Text(
@@ -338,47 +340,67 @@ class _OCRScreenState extends State<OCRScreen> {
                           if (result.ocrResult!.nim != null)
                             _buildInfoRow('NIM', result.ocrResult!.nim!),
                           if (result.ocrResult!.name != null)
-                            _buildInfoRow('Nama Lengkap', result.ocrResult!.name!),
-                          _buildInfoRow('Fakultas', result.ocrResult!.faculty ?? 'fakultas'),
+                            _buildInfoRow(
+                              'Nama Lengkap',
+                              result.ocrResult!.name!,
+                            ),
+                          _buildInfoRow(
+                            'Fakultas',
+                            result.ocrResult!.faculty ?? 'fakultas',
+                          ),
                           if (result.ocrResult!.studyProgram != null)
-                            _buildInfoRow('Program Studi', result.ocrResult!.studyProgram!),
+                            _buildInfoRow(
+                              'Program Studi',
+                              result.ocrResult!.studyProgram!,
+                            ),
                           if (result.ocrResult!.vehicleNumber != null)
-                            _buildInfoRow('Nomor Kendaraan', result.ocrResult!.vehicleNumber!),
+                            _buildInfoRow(
+                              'Nomor Kendaraan',
+                              result.ocrResult!.vehicleNumber!,
+                            ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                   ],
-                  
+
                   // Tampilkan status database
                   if (result.jsonResponse != null) ...[
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: result.success ? Colors.green[50] : Colors.orange[50],
+                        color: result.success
+                            ? Colors.green[50]
+                            : Colors.orange[50],
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: result.success ? Colors.green[200]! : Colors.orange[200]!,
+                          color: result.success
+                              ? Colors.green[200]!
+                              : Colors.orange[200]!,
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             result.success ? Icons.check_circle : Icons.info,
-                            color: result.success ? Colors.green[600] : Colors.orange[600],
+                            color: result.success
+                                ? Colors.green[600]
+                                : Colors.orange[600],
                             size: 18,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              result.success 
-                                ? 'Status: Data ditemukan di database'
-                                : 'Status: ${result.jsonResponse!['status']}',
+                              result.success
+                                  ? 'Status: Data ditemukan di database'
+                                  : 'Status: ${result.jsonResponse!['status']}',
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
-                                color: result.success ? Colors.green[700] : Colors.orange[700],
+                                color: result.success
+                                    ? Colors.green[700]
+                                    : Colors.orange[700],
                               ),
                             ),
                           ),
@@ -387,7 +409,7 @@ class _OCRScreenState extends State<OCRScreen> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  
+
                   // Tampilkan teks mentah yang terdeteksi
                   if (result.extractedText.isNotEmpty) ...[
                     ExpansionTile(
@@ -426,13 +448,19 @@ class _OCRScreenState extends State<OCRScreen> {
               TextButton.icon(
                 onPressed: () async {
                   // Copy JSON to clipboard
-                  await Clipboard.setData(ClipboardData(text: result.getJsonString()));
+                  await Clipboard.setData(
+                    ClipboardData(text: result.getJsonString()),
+                  );
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: const Row(
                           children: [
-                            Icon(Icons.check_circle, color: Colors.white, size: 18),
+                            Icon(
+                              Icons.check_circle,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                             SizedBox(width: 8),
                             Text('JSON berhasil disalin ke clipboard'),
                           ],
@@ -454,9 +482,7 @@ class _OCRScreenState extends State<OCRScreen> {
               ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey[600],
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
               child: const Text('OK'),
             ),
           ],
@@ -475,18 +501,10 @@ class _OCRScreenState extends State<OCRScreen> {
             width: 90,
             child: Text(
               '$label:',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 12))),
         ],
       ),
     );
@@ -497,7 +515,9 @@ class _OCRScreenState extends State<OCRScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
               Container(
@@ -525,16 +545,11 @@ class _OCRScreenState extends State<OCRScreen> {
               ),
             ],
           ),
-          content: Text(
-            message,
-            style: const TextStyle(fontSize: 14),
-          ),
+          content: Text(message, style: const TextStyle(fontSize: 14)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey[600],
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
               child: const Text('OK'),
             ),
           ],
@@ -604,7 +619,7 @@ class _OCRScreenState extends State<OCRScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // Title and subtitle
                     Expanded(
                       child: Column(
@@ -644,7 +659,7 @@ class _OCRScreenState extends State<OCRScreen> {
                         ],
                       ),
                     ),
-                    
+
                     // Status indicator
                     if (_isProcessing)
                       Container(
@@ -658,7 +673,9 @@ class _OCRScreenState extends State<OCRScreen> {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         ),
                       )
@@ -718,8 +735,10 @@ class _OCRScreenState extends State<OCRScreen> {
                         color: _isProcessing
                             ? Colors.orange[300]!
                             : _selectedImage != null
-                                ? Theme.of(context).colorScheme.primary.withOpacity(0.3)
-                                : Colors.grey[200]!,
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.3)
+                            : Colors.grey[200]!,
                         width: 2,
                       ),
                       color: Colors.white,
@@ -762,7 +781,9 @@ class _OCRScreenState extends State<OCRScreen> {
                                       child: Column(
                                         children: [
                                           CircularProgressIndicator(
-                                            color: Theme.of(context).colorScheme.primary,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                             strokeWidth: 3,
                                           ),
                                           const SizedBox(height: 12),
@@ -830,14 +851,18 @@ class _OCRScreenState extends State<OCRScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.3),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
                             ],
                           ),
                           child: ElevatedButton.icon(
-                            onPressed: _isProcessing ? null : _captureFromCamera,
+                            onPressed: _isProcessing
+                                ? null
+                                : _captureFromCamera,
                             icon: const Icon(Icons.camera_alt, size: 20),
                             label: const Text(
                               'Ambil Foto',
@@ -847,7 +872,9 @@ class _OCRScreenState extends State<OCRScreen> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -882,64 +909,20 @@ class _OCRScreenState extends State<OCRScreen> {
                               ),
                             ),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
                               backgroundColor: Colors.white,
                               side: BorderSide(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withOpacity(0.3),
                                 width: 1.5,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Instructions card
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.blue[100]!,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Colors.blue[600],
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tips untuk hasil terbaik:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                  color: Colors.blue[800],
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '• Pastikan KTM terlihat jelas dan tidak buram\n• Hindari bayangan atau pantulan cahaya\n• Posisikan KTM secara horizontal',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.blue[700],
-                                  height: 1.3,
-                                ),
-                              ),
-                            ],
                           ),
                         ),
                       ],
@@ -971,7 +954,9 @@ class _OCRScreenState extends State<OCRScreen> {
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withOpacity(0.2),
                     width: 1,
                   ),
                 ),
